@@ -20,11 +20,12 @@ const classroomNameRegex = /^[a-z0-9]+$/i;
 
 export interface CreateClassroomModalProps {
     isOpen: boolean,
-    onClose: () => void
+    onClose: () => void,
+    onCreate: () => void,
 }
 
 const CreateClassroomModal = (props: CreateClassroomModalProps): React.ReactElement => {
-    const { isOpen, onClose } = props;
+    const { isOpen, onClose, onCreate } = props;
 
     const [classroomName, setClassroomName] = useState("");
     const [creatingClassroom, setCreatingClassroom] = useState(false);
@@ -41,6 +42,7 @@ const CreateClassroomModal = (props: CreateClassroomModalProps): React.ReactElem
             });
 
             setClassroomName("");
+            onCreate();
             onClose();
         } catch (error) {
             console.error(error);

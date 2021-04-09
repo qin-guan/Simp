@@ -10,7 +10,7 @@ namespace Simp.Extensions.Mappers
         {
             return new ClassroomDto
             {
-                Id = classroom.ToString(),
+                Id = classroom.Id.ToString(),
                 Name = classroom.Name
             };
         }
