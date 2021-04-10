@@ -5,17 +5,18 @@ import { Flex } from "@chakra-ui/react";
 import ClassroomNavBar from "../../components/app/ClassroomNavBar";
 import ClassroomInstance from "../../models/Classroom";
 
-const Classroom = (): React.ReactElement => {
+const Classroom = (): React.ReactElement | null => {
     const { state } = useLocation<{classroom: ClassroomInstance}>();
+    
     if (!state) {
         window.location.href = "/app";
-        return <></>;
+        return null;
     }
     
     const { classroom: { Name } } = state;
     if (!Name) {
         window.location.href = "/app";
-        return <></>;
+        return null;
     }
     
     return (

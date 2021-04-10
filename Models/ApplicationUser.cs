@@ -9,5 +9,7 @@ namespace Simp.Models
     public class ApplicationUser : IdentityUser<Guid>
     {
         public ICollection<Classroom> Classrooms { get; set; }
+        public ICollection<Lesson> TeachingLessons { get; set; }
+        public ICollection<Lesson> AttendedLessons { get; set; }
     }
 }
