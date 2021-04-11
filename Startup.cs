@@ -1,4 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -11,6 +13,7 @@ using Simp.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Simp.Authorization;
 using Simp.Filters;
 using Simp.Services;
 
@@ -34,10 +37,7 @@ namespace Simp
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddDefaultIdentity<ApplicationUser>(options =>
-                {
-                    options.SignIn.RequireConfirmedEmail = false;
-                })
+            services.AddDefaultIdentity<ApplicationUser>(options => { options.SignIn.RequireConfirmedEmail = false; })
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddIdentityServer()
@@ -62,6 +62,17 @@ namespace Simp
 
             services.AddScoped<AddUserDataServiceFilter>();
             services.AddScoped<ClassroomService>();
+            services.AddScoped<LessonService>();
+
+            services.AddScoped<IAuthorizationHandler, IsOwnerAuthorizationHandler>();
+            services.AddScoped<IAuthorizationHandler, IsInClassroomAuthorizationHandler>();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("IsOwner", policy =>
+                    policy.Requirements.Add(new IsOwnerRequirement()));
+                options.AddPolicy("IsInClassroom", policy =>
+                    policy.Requirements.Add(new IsInClassroomRequirement()));
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

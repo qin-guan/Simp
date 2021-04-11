@@ -17,16 +17,28 @@ namespace Simp.Services
             _dbContext = dbContext;
         }
 
+        public async Task<Classroom> FindAsync(Guid guid)
+        {
+            return await _dbContext.Classrooms.FindAsync(guid);
+        }
+
         public async Task<IEnumerable<Classroom>> FindByUserAsync(ApplicationUser user)
         {
             await _dbContext.Entry(user).Collection(u => u.Classrooms).LoadAsync();
             return user.Classrooms;
         }
 
-        public async Task AddUser(Classroom classroom, ApplicationUser user)
+        public async Task AddUserAsync(Classroom classroom, ApplicationUser user)
         {
             await _dbContext.Entry(classroom).Collection(c => c.Users).LoadAsync();
             classroom.Users.Add(user);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddLessonAsync(Classroom classroom, Lesson lesson)
+        {
+            await _dbContext.Entry(classroom).Collection(c => c.Lessons).LoadAsync();
+            classroom.Lessons.Add(lesson);
             await _dbContext.SaveChangesAsync();
         }
 
@@ -41,6 +53,11 @@ namespace Simp.Services
         public async Task DeleteAsync(Guid guid)
         {
             var classroom = await _dbContext.Classrooms.FindAsync(guid);
+            await DeleteAsync(classroom);
+        }
+
+        public async Task DeleteAsync(Classroom classroom)
+        {
             _dbContext.Classrooms.Remove(classroom);
             await _dbContext.SaveChangesAsync();
         }

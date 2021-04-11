@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 using Simp.Dtos;
@@ -20,10 +22,12 @@ namespace Simp.Controllers
     public class ClassroomsController : ControllerBase
     {
         private readonly ClassroomService _classroomService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ClassroomsController(ClassroomService classroomService)
+        public ClassroomsController(ClassroomService classroomService, UserManager<ApplicationUser> userManager)
         {
             _classroomService = classroomService;
+            _userManager = userManager;
         }
 
         [HttpGet]
@@ -38,6 +42,22 @@ namespace Simp.Controllers
             return Ok(classrooms.Select(classroom => classroom.ToDto()));
         }
 
+        [HttpGet("{classroomId}")]
+        [ServiceFilter(typeof(AddUserDataServiceFilter))]
+        public async Task<ActionResult<ClassroomDto>> GetClassroom([FromRoute] string classroomId)
+        {
+            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
+            Debug.Assert(user != null, nameof(user) + " != null");
+
+            var validId = Guid.TryParse(classroomId, out var guid);
+            if (!validId) return BadRequest();
+
+            var classrooms = (await _classroomService.FindByUserAsync(user)).ToList();
+            if (classrooms.All(c => c.Id != guid)) return Forbid();
+
+            return Ok(classrooms.SingleOrDefault(c => c.Id == guid).ToDto());
+        }
+        
         [HttpPost]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<ClassroomDto>> CreateClassroom(
@@ -52,13 +72,13 @@ namespace Simp.Controllers
                 var classroom = classroomDto.ToClassroom();
                 var newClassroom = await _classroomService.CreateAsync(classroom);
 
-                await _classroomService.AddUser(newClassroom, user);
-                
+                await _classroomService.AddUserAsync(newClassroom, user);
+                await _userManager.AddClaimAsync(user, new Claim($"Classroom/{classroom.Id.ToString()}/Owner", "true"));
+
                 return Ok(newClassroom.ToDto());
             }
-            catch (Exception e)
+            catch
             {
-                Console.WriteLine(e);
                 return BadRequest();
             }
         }

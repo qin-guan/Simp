@@ -1,16 +1,49 @@
 ﻿import * as React from "react";
 
-import { Box, Button, Flex, Heading, Menu, MenuButton, MenuItem, MenuList, Spacer } from "@chakra-ui/react";
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import {
+    Box,
+    Breadcrumb,
+    BreadcrumbItem, BreadcrumbLink,
+    Button,
+    Flex,
+    Heading,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    Spacer
+} from "@chakra-ui/react";
+import { ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
 
 import { OidcPaths } from "../../oidc/AuthorizationConstants";
-import { NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const AppNavBar = (): React.ReactElement => {
+interface AppNavBarProps {
+    breadcrumbs?: { name: string, path: string }[]
+}
+
+const AppNavBar = (props: AppNavBarProps): React.ReactElement => {
+    const { breadcrumbs = [] } = props;
     return (
         <Flex p={"3"} align="center">
             <Box>
-                <Heading size={"md"}>Classrooms</Heading>
+                <Heading size={"md"}>
+                    <Breadcrumb spacing="8px" separator={<ChevronRightIcon color="gray.500"/>}>
+                        <BreadcrumbItem>
+                            <Link to={"/app"}>
+                                <BreadcrumbLink>Classrooms</BreadcrumbLink>
+                            </Link>
+                        </BreadcrumbItem>
+
+                        {breadcrumbs.map((breadcrumb, idx) => (
+                            <BreadcrumbItem isCurrentPage key={idx.toString()}>
+                                <Link to={breadcrumb.path}>
+                                    <BreadcrumbLink>{breadcrumb.name}</BreadcrumbLink>
+                                </Link>
+                            </BreadcrumbItem>
+                        ))}
+                    </Breadcrumb>
+                </Heading>
             </Box>
             <Spacer/>
             <Box>
@@ -19,12 +52,12 @@ const AppNavBar = (): React.ReactElement => {
                         My Account
                     </MenuButton>
                     <MenuList>
-                        <a href={`$/${OidcPaths.IdentityManagePath}`}>
+                        <Link to={`$/${OidcPaths.IdentityManagePath}`}>
                             <MenuItem>Manage</MenuItem>
-                        </a>
-                        <NavLink to={{ pathname: OidcPaths.LogOut, state: { local: true } }}>
+                        </Link>
+                        <Link to={{ pathname: OidcPaths.LogOut, state: { local: true } }}>
                             <MenuItem>Logout</MenuItem>
-                        </NavLink>
+                        </Link>
                     </MenuList>
                 </Menu>
             </Box>

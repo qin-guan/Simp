@@ -3,7 +3,7 @@
     public enum LessonType
     {
         Online,
-        Virtual,
+        InPerson,
         Hybrid
     }
 }

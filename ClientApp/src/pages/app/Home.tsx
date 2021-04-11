@@ -64,9 +64,6 @@ const Home = (): React.ReactElement => {
 
                                             to={{
                                                 pathname: `/app/classrooms/${classroom.Id}`,
-                                                state: {
-                                                    classroom
-                                                }
                                             }}>
                                             <Box
                                                 h={"40"}

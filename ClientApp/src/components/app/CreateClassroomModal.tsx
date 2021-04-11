@@ -16,8 +16,6 @@ import {
 import classroomsApi from "../../api/http/Classroom";
 import { useRef, useState } from "react";
 
-const classroomNameRegex = /^[a-z0-9]+$/i;
-
 export interface CreateClassroomModalProps {
     isOpen: boolean,
     onClose: () => void,
@@ -81,7 +79,7 @@ const CreateClassroomModal = (props: CreateClassroomModalProps): React.ReactElem
                 <ModalFooter>
                     <Button
                         isLoading={creatingClassroom}
-                        isDisabled={!classroomNameRegex.test(classroomName)}
+                        isDisabled={!classroomName}
                         colorScheme="blue"
                         mr={3}
                         onClick={onClassroomCreate}
