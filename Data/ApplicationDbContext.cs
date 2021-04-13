@@ -30,5 +30,6 @@ namespace Simp.Data
 
         public DbSet<Classroom> Classrooms { get; set; }
         public DbSet<Lesson> Lessons { get; set; }
+        public DbSet<AttendanceVerification> AttendanceVerifications { get; set; }
     }
 }

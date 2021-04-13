@@ -63,6 +63,7 @@ namespace Simp
             services.AddScoped<AddUserDataServiceFilter>();
             services.AddScoped<ClassroomService>();
             services.AddScoped<LessonService>();
+            services.AddScoped<AttendanceService>();
 
             services.AddScoped<IAuthorizationHandler, IsOwnerAuthorizationHandler>();
             services.AddScoped<IAuthorizationHandler, IsInClassroomAuthorizationHandler>();

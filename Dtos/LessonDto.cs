@@ -13,6 +13,6 @@ namespace Simp.Dtos
         public long StartDate { get; set; }
         public long EndDate { get; set; }
         public string MeetingUri { get; set; }
-        public IEnumerable<string> Teachers { get; set; }
+        public IEnumerable<UserDto> Teachers { get; set; }
     }
 }

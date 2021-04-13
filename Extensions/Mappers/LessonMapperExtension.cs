@@ -22,8 +22,8 @@ namespace Simp.Extensions.Mappers
                 EndDate = lesson.EndDate.ToEpochTime(),
                 MeetingUri = lesson.MeetingUri.ToString(),
                 Teachers = lesson.Teachers is null
-                    ? new List<string>()
-                    : lesson.Teachers.ToList().Select(t => t.Id.ToString())
+                    ? new List<UserDto>()
+                    : lesson.Teachers.ToList().Select(t => t.ToDto())
             };
         }
 

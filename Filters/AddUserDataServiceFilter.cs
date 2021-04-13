@@ -2,6 +2,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 using Simp.Models;
@@ -30,7 +31,14 @@ namespace Simp.Filters
                 context.HttpContext.Items.Add("ApplicationUser", user);
             }
 
-            await next();
+            if (context.HttpContext.Items["ApplicationUser"] is null)
+            {
+                context.Result = new ForbidResult();
+            }
+            else
+            {
+                await next();
+            }
         }
 
     }

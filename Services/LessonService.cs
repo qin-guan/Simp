@@ -43,5 +43,12 @@ namespace Simp.Services
             await _dbContext.SaveChangesAsync();
             return newLesson.Entity;
         }
+
+        public async Task AddTeacherAsync(Lesson lesson, ApplicationUser user)
+        {
+            await _dbContext.Entry(lesson).Collection(l => l.Teachers).LoadAsync();
+            lesson.Teachers.Add(user);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }
