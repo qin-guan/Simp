@@ -35,17 +35,10 @@ namespace Simp.Services
 
         public async Task<AttendanceVerification> CreateVerificationCodeAsync(Lesson lesson)
         {
-            var random = new Random();
-            var code = 0;
-            for (var idx = 0; idx < 5; idx++)
-            {
-                code = code * 10 + random.Next(10);
-            }
-
             var attendance = await _dbContext.AttendanceVerifications.AddAsync(new AttendanceVerification
             {
                 ExpiryDateTime = DateTime.Now.AddSeconds(_validDuration),
-                Code = code,
+                Code = new Random().Next(10000, 99999),
                 Lesson = lesson
             });
             await _dbContext.SaveChangesAsync();

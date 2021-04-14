@@ -8,7 +8,11 @@ import {
     ModalCloseButton,
     ModalBody,
     ModalFooter,
-    Button, Heading, Center
+    Button,
+    Spacer,
+    Progress,
+    Heading,
+    Center
 } from "@chakra-ui/react";
 
 import LessonInstance from "../../models/Lesson";
@@ -28,26 +32,44 @@ interface AttendanceCodeModalProps {
 
 const AttendanceCodeModal = (props: AttendanceCodeModalProps): React.ReactElement => {
     const { isOpen, onClose, classroom, lesson } = props;
-    
+
     const [status, setStatus] = useState(Status.Loading);
+
+    const [countdown, setCountdown] = useState(100);
     const [code, setCode] = useState<number>();
-    
-    const fetchAttendanceCode = async() => {
-        try {
-            const res = await getAttendanceCode(classroom.Id, lesson.Id);
-            setCode(res);
-        } catch {
-            setStatus(Status.Error);
-        }
-    };
+
     
     useEffect(() => {
-        fetchAttendanceCode();
-        const timer = setInterval(fetchAttendanceCode, 15000);
+        const fetchAttendeeCode = async () => {
+            try {
+                const res = await getAttendanceCode(classroom.Id, lesson.Id);
+                if (res !== code) {
+                    setCountdown(100);
+                }
+                setCode(res);
+            } catch {
+                setStatus(Status.Error);
+            }
+        };
+
+        const timer = setInterval(fetchAttendeeCode, 1000);
+        fetchAttendeeCode();
+        
         return () => {
             clearInterval(timer);
         };
-    }, []);
+    }, [code, classroom.Id, lesson.Id]);
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            if (countdown <= 0) setCountdown(100);
+            else setCountdown(c => c - 100/30);
+        }, 1000);
+        
+        return () => {
+            clearInterval(timer);
+        };
+    }, [countdown]);
     
     return (
         <Modal onClose={onClose} isOpen={isOpen} isCentered>
@@ -55,6 +77,7 @@ const AttendanceCodeModal = (props: AttendanceCodeModalProps): React.ReactElemen
             <ModalContent>
                 <ModalCloseButton/>
                 <ModalBody p={10}>
+                    <Progress value={countdown} mb={6}/>
                     <Center>
                         <Heading size={"4xl"}>{code}</Heading>
                     </Center>
