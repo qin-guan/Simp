@@ -19,11 +19,12 @@ namespace Simp.Extensions.Mappers
         {
             var validId = Guid.TryParse(classroomDto.Id, out var id);
             if (!validId && !string.IsNullOrWhiteSpace(classroomDto.Id)) throw new Exception("Invalid Classroom.Id");
-            
+
             return new Classroom
             {
                 Id = id,
-                Name = classroomDto.Name
+                Name = classroomDto.Name,
+                JoinCode = new Random().Next(10000, 99999)
             };
         }
     }

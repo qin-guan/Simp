@@ -13,10 +13,25 @@ export const create = async (json: Classroom): Promise<Classroom> => {
     return await apiClient.post("Classrooms/", { json }).json<Classroom>();
 };
 
+export const join = async(code: string): Promise<Classroom> => {
+    return await apiClient.get(`Classrooms/Join/${code}`).json<Classroom>();
+};
+
+export const isOwner = async (classroomId: string): Promise<boolean> => {
+    return (await apiClient.get(`Classrooms/${classroomId}/Owner`)).ok;
+};
+
+export const getJoinCode = async (classroomId: string): Promise<string> => {
+    return await apiClient.get(`Classrooms/${classroomId}/Code`).json<string>();
+};
+
 const classrooms = {
     get,
     find,
-    create
+    create,
+    join,
+    isOwner,
+    getJoinCode
 };
 
 export default classrooms;

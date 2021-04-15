@@ -7,6 +7,7 @@ namespace Simp.Models
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public int JoinCode { get; set; }
         
         public List<Lesson> Lessons { get; set; }
         public ICollection<ApplicationUser> Users { get; set; }

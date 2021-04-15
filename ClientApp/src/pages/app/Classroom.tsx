@@ -15,7 +15,7 @@ import {
     TabList,
     Tabs,
     TabPanel,
-    TabPanels
+    TabPanels, Stat, StatLabel, StatNumber, StatHelpText
 } from "@chakra-ui/react";
 
 import authorizationService from "../../oidc/AuthorizationService";
@@ -34,6 +34,8 @@ const Classroom = (): React.ReactElement | null => {
     const { classroomId } = useParams<{classroomId: string}>();
     
     const [classroom, setClassroom] = useState<ClassroomInstance>({ Id: "", Name: "" });
+    const [isOwner, setIsOwner] = useState(false);
+    const [joinCode, setJoinCode] = useState("");
     const [userId, setUserId] = useState("");
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [status, setStatus] = useState(Status.Loading);
@@ -61,7 +63,12 @@ const Classroom = (): React.ReactElement | null => {
     useEffect(() => {
         const findClassroom = async () => {
             try {
-                const classroom = await classroomsApi.find(classroomId);
+                const [classroom, owner] = await Promise.all([classroomsApi.find(classroomId), classroomsApi.isOwner(classroomId)]);
+                if (owner) {
+                    const joinCode = await classroomsApi.getJoinCode(classroomId);
+                    setJoinCode(joinCode);
+                }
+                setIsOwner(owner);
                 setClassroom(classroom);
             } catch {
                 setStatus(Status.Error);
@@ -92,7 +99,7 @@ const Classroom = (): React.ReactElement | null => {
                 {{
                     [Status.Loading]: <Spinner alignSelf={"center"}/>,
                     [Status.Empty]: (
-                        <Flex direction={"column"} alignItems={"center"} alignSelf={"center"}>
+                        <Flex direction={"column"} alignItems={"center"} alignSelf={"center"} style={{ flex: 1 }}>
                             <Heading size={"lg"}>You are not in any lessons yet, create one?</Heading>
                             <Button mt={4} onClick={openCreateLessonModal}>Create lesson</Button>
                         </Flex>
@@ -166,6 +173,15 @@ const Classroom = (): React.ReactElement | null => {
                         </Flex>
                     )
                 }[status]}
+                {isOwner && (
+                    <Box borderWidth={1} borderRadius={"lg"} p={4}>
+                        <Stat>
+                            <StatLabel>Join code</StatLabel>
+                            <StatNumber>{joinCode}</StatNumber>
+                            <StatHelpText>Anyone with this<br/>code can join this classroom</StatHelpText>
+                        </Stat>
+                    </Box>
+                )}
             </Flex>
         </Flex>
     );

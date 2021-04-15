@@ -22,6 +22,11 @@ namespace Simp.Services
             return await _dbContext.Classrooms.FindAsync(guid);
         }
 
+        public async Task<IEnumerable<Classroom>> FindByJoinCodeAsync(int code)
+        {
+            return await _dbContext.Classrooms.Where(c => c.JoinCode == code).ToListAsync();
+        }
+
         public async Task<IEnumerable<Classroom>> FindByUserAsync(ApplicationUser user)
         {
             await _dbContext.Entry(user).Collection(u => u.Classrooms).LoadAsync();
@@ -44,6 +49,12 @@ namespace Simp.Services
 
         public async Task<Classroom> CreateAsync(Classroom classroom)
         {
+            if (await _dbContext.Classrooms.AnyAsync(c => c.JoinCode == classroom.JoinCode))
+            {
+                classroom.JoinCode = new Random().Next(10000, 99999);
+                return await CreateAsync(classroom);
+            }
+            
             var newClassroom = await _dbContext.Classrooms.AddAsync(classroom);
             await _dbContext.SaveChangesAsync();
 

@@ -30,6 +30,7 @@
         <None Remove="$(SpaRoot)**" />
         <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
         <None Include="ClientApp\src\components\app\AttendanceCodeModal.tsx" />
+        <None Include="ClientApp\src\components\app\JoinClassroomModal.tsx" />
         <None Include="ClientApp\src\components\app\lesson\AttendeeLesson.tsx" />
         <None Include="ClientApp\src\components\app\lesson\TeacherLesson.tsx" />
     </ItemGroup>
