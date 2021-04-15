@@ -33,9 +33,7 @@ const JoinClassroomModal = (props: JoinClassroomModalProps): React.ReactElement 
         try {
             await classroomsApi.join(joinCode);
 
-            console.log("Completed");
             setJoinCode("");
-            console.log("yay");
             onJoin();
             onClose();
         } catch (error) {

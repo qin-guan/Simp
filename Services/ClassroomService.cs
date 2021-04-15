@@ -72,5 +72,11 @@ namespace Simp.Services
             _dbContext.Classrooms.Remove(classroom);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<Classroom> LoadUsersAsync(Classroom classroom)
+        {
+            await _dbContext.Entry(classroom).Collection(c => c.Users).LoadAsync();
+            return classroom;
+        }
     }
 }

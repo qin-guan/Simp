@@ -15,7 +15,7 @@ import {
     TabList,
     Tabs,
     TabPanel,
-    TabPanels, Stat, StatLabel, StatNumber, StatHelpText
+    TabPanels, Stat, StatLabel, StatNumber, StatHelpText, Wrap, WrapItem, Avatar
 } from "@chakra-ui/react";
 
 import authorizationService from "../../oidc/AuthorizationService";
@@ -29,13 +29,15 @@ import Status from "../../models/Status";
 
 import CreateLessonModal from "../../components/app/CreateLessonModal";
 import AppNavBar from "../../components/app/AppNavBar";
+import User from "../../models/User";
 
 const Classroom = (): React.ReactElement | null => {
     const { classroomId } = useParams<{classroomId: string}>();
     
     const [classroom, setClassroom] = useState<ClassroomInstance>({ Id: "", Name: "" });
-    const [isOwner, setIsOwner] = useState(false);
+    const [isPrivileged, setIsPrivileged] = useState(false);
     const [joinCode, setJoinCode] = useState("");
+    const [classroomUsers, setClassroomUsers] = useState<User[]>([]);
     const [userId, setUserId] = useState("");
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [status, setStatus] = useState(Status.Loading);
@@ -63,12 +65,13 @@ const Classroom = (): React.ReactElement | null => {
     useEffect(() => {
         const findClassroom = async () => {
             try {
-                const [classroom, owner] = await Promise.all([classroomsApi.find(classroomId), classroomsApi.isOwner(classroomId)]);
+                const [classroom, owner] = await Promise.all([classroomsApi.find(classroomId), classroomsApi.isPrivileged(classroomId)]);
                 if (owner) {
-                    const joinCode = await classroomsApi.getJoinCode(classroomId);
+                    const [joinCode, classroomUsers] = await Promise.all([classroomsApi.getJoinCode(classroomId), classroomsApi.getUsers(classroomId)]);
                     setJoinCode(joinCode);
+                    setClassroomUsers(classroomUsers);
                 }
-                setIsOwner(owner);
+                setIsPrivileged(owner);
                 setClassroom(classroom);
             } catch {
                 setStatus(Status.Error);
@@ -140,7 +143,7 @@ const Classroom = (): React.ReactElement | null => {
                                                 ))}
                                             </SimpleGrid>
                                         </TabPanel>
-                                        <TabPanel>
+                                        <TabPanel px={0}>
                                             <SimpleGrid minChildWidth={"10rem"} spacing={4}>
                                                 {teachingLessons.map((lesson) => (
                                                     <Link
@@ -173,13 +176,21 @@ const Classroom = (): React.ReactElement | null => {
                         </Flex>
                     )
                 }[status]}
-                {isOwner && (
-                    <Box borderWidth={1} borderRadius={"lg"} p={4}>
+                {isPrivileged && (
+                    <Box borderWidth={1} borderRadius={"lg"} p={4} ml={5}>
                         <Stat>
                             <StatLabel>Join code</StatLabel>
                             <StatNumber>{joinCode}</StatNumber>
                             <StatHelpText>Anyone with this<br/>code can join this classroom</StatHelpText>
                         </Stat>
+                        <Heading size={"md"} mb={2}>Users</Heading>
+                        <Wrap maxW={"3xs"}>
+                            {classroomUsers.map((user, idx) => (
+                                <WrapItem key={idx.toString()}>
+                                    <Avatar name={user.Name} />
+                                </WrapItem>
+                            ))}
+                        </Wrap>
                     </Box>
                 )}
             </Flex>

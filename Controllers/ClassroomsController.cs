@@ -60,7 +60,27 @@ namespace Simp.Controllers
             return Ok(classrooms.SingleOrDefault(c => c.Id == guid).ToDto());
         }
 
-        [HttpGet("{classroomId}/Owner")]
+        [HttpGet("{classroomId}/Users")]
+        [ServiceFilter(typeof(AddUserDataServiceFilter))]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetClassroomUsers([FromRoute] string classroomId)
+        {
+            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
+            Debug.Assert(user != null, nameof(user) + " != null");
+
+            var validId = Guid.TryParse(classroomId, out var guid);
+            if (!validId) return BadRequest();
+
+            var classroom = await _classroomService.FindAsync(guid);
+
+            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
+            if (!authorization.Succeeded) return Forbid();
+
+            await _classroomService.LoadUsersAsync(classroom);
+
+            return Ok(classroom.Users.ToList().Select(u => u.ToDto()));
+        }
+
+        [HttpGet("{classroomId}/Privileged")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult> GetIsClassroomOwner([FromRoute] string classroomId)
         {
