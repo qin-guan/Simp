@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Simp.Dtos;
 using Simp.Extensions.Mappers;
@@ -21,13 +22,16 @@ namespace Simp.Controllers
         private readonly LessonService _lessonService;
         private readonly AttendanceService _attendanceService;
         private readonly ClassroomService _classroomService;
-
+        
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuthorizationService _authorizationService;
 
         public LessonsController(
             LessonService lessonService,
             ClassroomService classroomService,
             AttendanceService attendanceService,
+            
+            UserManager<ApplicationUser> userManager,
             IAuthorizationService authorizationService
         )
         {
@@ -35,6 +39,7 @@ namespace Simp.Controllers
             _classroomService = classroomService;
             _attendanceService = attendanceService;
 
+            _userManager = userManager;
             _authorizationService = authorizationService;
         }
 
@@ -247,6 +252,35 @@ namespace Simp.Controllers
             var success = await _attendanceService.CreateUserAttendanceAsync(lesson, user, code);
 
             return Ok(success);
+        }
+        [HttpDelete("{lessonId}/Attendance")]
+        [ServiceFilter(typeof(AddUserDataServiceFilter))]
+        public async Task<ActionResult<bool>> RemoveUserAttendence(
+            [FromRoute] string classroomId,
+            [FromRoute] string lessonId,
+            [FromBody] string userId
+        )
+        {
+            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
+            Debug.Assert(user != null, nameof(user) + " != null");
+        
+            var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
+            if (!validClassroomId) return BadRequest();
+        
+            var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
+            if (!validLessonId) return BadRequest();
+        
+            var classroom = await _classroomService.FindAsync(classroomGuid);
+            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
+        
+            if (!authorization.Succeeded) return Forbid();
+            
+            var lesson = await _lessonService.FindAsync(lessonGuid);
+            var targetUser = await _userManager.FindByIdAsync(userId);
+            
+            await _attendanceService.DeleteUserAttendanceAsync(lesson, targetUser);
+            
+            return Ok();
         }
     }
 }

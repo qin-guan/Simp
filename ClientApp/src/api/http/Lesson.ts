@@ -6,7 +6,7 @@ export const get = async (classroomId: string): Promise<Lesson[]> => {
     return await apiClient.get(`Lessons/${classroomId}/`).json<Lesson[]>();
 };
 
-export const find = async(classroomId: string, lessonId: string): Promise<Lesson> => {
+export const find = async (classroomId: string, lessonId: string): Promise<Lesson> => {
     return await apiClient.get(`Lessons/${classroomId}/${lessonId}`).json<Lesson>();
 };
 
@@ -30,6 +30,10 @@ export const getAttendance = async (classroomId: string, lessonId: string): Prom
     return await apiClient.get(`Lessons/${classroomId}/${lessonId}/Attendance`).json<boolean>();
 };
 
+export const deleteAttendance = async (classroomId: string, lessonId: string, userId: string): Promise<void> => {
+    await apiClient.delete(`Lessons/${classroomId}/${lessonId}/Attendance`, { json: userId });
+};
+
 const lessons = {
     get,
     find,
@@ -37,7 +41,8 @@ const lessons = {
     createAttendance,
     getAttendanceCode,
     getAttendees,
-    getAttendance
+    getAttendance,
+    deleteAttendance
 };
 
 export default lessons;

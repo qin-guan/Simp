@@ -78,5 +78,14 @@ namespace Simp.Services
 
             return true;
         }
+
+        public async Task DeleteUserAttendanceAsync(Lesson lesson, ApplicationUser user)
+        {
+            await _dbContext.Entry(user).Collection(u => u.AttendedLessons).LoadAsync();
+            if (!user.AttendedLessons.Contains(lesson)) return;
+
+            user.AttendedLessons.Remove(lesson);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

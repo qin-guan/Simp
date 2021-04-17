@@ -31,6 +31,7 @@ import User from "../../models/User";
 import MarkAttendanceCodeModal from "../../components/app/lesson/MarkAttendanceCodeModal";
 
 import { RepeatIcon } from "@chakra-ui/icons";
+import AttendeeListModal from "../../components/app/lesson/AttendeeListModal";
 
 const Lesson = (): React.ReactElement => {
     const { classroomId, lessonId } = useParams<{ classroomId: string, lessonId: string }>();
@@ -53,12 +54,13 @@ const Lesson = (): React.ReactElement => {
 
     const [status, setStatus] = useState(Status.Loading);
     const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+    const [attendeeListOpen, setAttendeeListOpen] = useState(false);
 
     const fetchAttendance = async () => {
         const attendance = await lessonsApi.getAttendance(classroomId, lessonId);
         setAttendance(attendance);
     };
-    
+
     const fetchAttendees = async () => {
         const lessonAttendees = await lessonsApi.getAttendees(classroomId, lessonId);
         setAttendees(lessonAttendees);
@@ -97,6 +99,9 @@ const Lesson = (): React.ReactElement => {
     const onMarkAttendanceModalClose = () => setMarkAttendanceModalOpen(false);
     const onMarkedAttendance = async () => await fetchAttendance();
 
+    const closeAttendeeList = () => setAttendeeListOpen(false);
+    const openAttendeeList = () => setAttendeeListOpen(true);
+
     return (
         <Flex w={"full"} h={"full"} direction={"column"}>
             {attendanceModalOpen && <AttendanceCodeModal
@@ -113,6 +118,16 @@ const Lesson = (): React.ReactElement => {
                 isOpen={markAttendanceModalOpen}
                 onClose={onMarkAttendanceModalClose}
                 onMarkedAttendance={onMarkedAttendance}
+            />
+            <AttendeeListModal
+                attendees={attendees}
+                classroom={classroom}
+                lesson={lesson}
+
+                isOpen={attendeeListOpen}
+                onClose={closeAttendeeList}
+                onReloadAttendance={fetchAttendance}
+                onReloadAttendees={fetchAttendees}
             />
             <AppNavBar breadcrumbs={[{ name: classroom.Name, path: `/app/classrooms/${classroomId}` }, {
                 name: lesson.Name,
@@ -138,7 +153,7 @@ const Lesson = (): React.ReactElement => {
                                 Go to meeting
                             </Button>
                             {!attendance && (
-                                <Button onClick={openMarkAttendanceModal} colorScheme={"red"} size={"lg"}>
+                                <Button onClick={openMarkAttendanceModal} colorScheme={"red"} size={"lg"} ml={3}>
                                     Mark my attendance
                                 </Button>
                             )}
@@ -150,9 +165,10 @@ const Lesson = (): React.ReactElement => {
                         <Button colorScheme={"blue"} onClick={openAttendanceModal}>Show
                             attendance code</Button>
                         <Flex mt={3} mb={2} alignItems={"center"}>
-                            <Heading size={"md"} >Attendees</Heading>
+                            <Heading size={"md"}>Attendees ({attendees.length})</Heading>
                             <Spacer/>
-                            <IconButton aria-label={"Refresh"} icon={<RepeatIcon/>} colorScheme="teal" onClick={fetchAttendees}/>
+                            <IconButton aria-label={"Refresh"} icon={<RepeatIcon/>}
+                                onClick={fetchAttendees}/>
                         </Flex>
                         <Wrap maxW={"3xs"}>
                             {attendees.length === 0 && (
@@ -165,6 +181,7 @@ const Lesson = (): React.ReactElement => {
                                 </WrapItem>
                             ))}
                         </Wrap>
+                        <Button mt={4} onClick={openAttendeeList}>View attendee list</Button>
                     </Box>
                 )}
             </Flex>
