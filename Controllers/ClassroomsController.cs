@@ -82,7 +82,7 @@ namespace Simp.Controllers
 
         [HttpGet("{classroomId}/Privileged")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult> GetIsClassroomOwner([FromRoute] string classroomId)
+        public async Task<ActionResult<bool>> GetIsClassroomOwner([FromRoute] string classroomId)
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
@@ -93,9 +93,7 @@ namespace Simp.Controllers
             var classroom = await _classroomService.FindAsync(guid);
 
             var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
-            if (!authorization.Succeeded) return Forbid();
-
-            return Ok();
+            return Ok(authorization.Succeeded);
         }
 
         [HttpGet("{classroomId}/Code")]

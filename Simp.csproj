@@ -32,10 +32,8 @@
         <None Include="ClientApp\src\components\app\AttendanceCodeModal.tsx" />
         <None Include="ClientApp\src\components\app\JoinClassroomModal.tsx" />
         <None Include="ClientApp\src\components\app\lesson\AttendeeLesson.tsx" />
+        <None Include="ClientApp\src\components\app\lesson\MarkAttendanceCodeModal.ts" />
         <None Include="ClientApp\src\components\app\lesson\TeacherLesson.tsx" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="ClientApp\src\components\app\lesson" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

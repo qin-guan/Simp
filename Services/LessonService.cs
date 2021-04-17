@@ -50,5 +50,11 @@ namespace Simp.Services
             lesson.Teachers.Add(user);
             await _dbContext.SaveChangesAsync();
         }
+
+        public async Task<Lesson> LoadAttendeesAsync(Lesson lesson)
+        {
+            await _dbContext.Entry(lesson).Collection(l => l.Attendees).LoadAsync();
+            return lesson;
+        }
     }
 }

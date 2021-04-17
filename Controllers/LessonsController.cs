@@ -88,8 +88,8 @@ namespace Simp.Controllers
 
             return Ok(lesson.ToDto());
         }
-        
-        [HttpGet("{lessonId}/attendance")]
+
+        [HttpGet("{lessonId}/Code")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<int>> GetAttendanceCode(
             [FromRoute] string classroomId,
@@ -106,7 +106,7 @@ namespace Simp.Controllers
             if (!validLessonId) return BadRequest();
 
             var classroom = await _classroomService.FindAsync(classroomGuid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
+            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
 
             if (!authorization.Succeeded) return Forbid();
 
@@ -116,7 +116,73 @@ namespace Simp.Controllers
 
             return Ok(verificationCode.Code);
         }
+
+        /// <summary>
+        /// This gets the individual users attendance for the lesson
+        /// </summary>
+        /// <param name="classroomId"></param>
+        /// <param name="lessonId"></param>
+        /// <returns></returns>
+        [HttpGet("{lessonId}/Attendance")]
+        [ServiceFilter(typeof(AddUserDataServiceFilter))]
+        public async Task<ActionResult> GetUserLessonAttendance(
+            [FromRoute] string classroomId,
+            [FromRoute] string lessonId
+        )
+        {
+            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
+            Debug.Assert(user != null, nameof(user) + " != null");
         
+            var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
+            if (!validClassroomId) return BadRequest();
+        
+            var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
+            if (!validLessonId) return BadRequest();
+        
+            var classroom = await _classroomService.FindAsync(classroomGuid);
+            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
+        
+            if (!authorization.Succeeded) return Forbid();
+            
+            var lesson = await _lessonService.FindAsync(lessonGuid);
+            await _lessonService.LoadAttendeesAsync(lesson);
+
+            return Ok(lesson.Attendees.Contains(user));
+        }
+
+        /// <summary>
+        /// This gets the lessons attendees (users who registered attendance)
+        /// </summary>
+        /// <param name="classroomId"></param>
+        /// <param name="lessonId"></param>
+        /// <returns></returns>
+        [HttpGet("{lessonId}/Attendees")]
+        [ServiceFilter(typeof(AddUserDataServiceFilter))]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAttendees(
+            [FromRoute] string classroomId,
+            [FromRoute] string lessonId
+        )
+        {
+            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
+            Debug.Assert(user != null, nameof(user) + " != null");
+
+            var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
+            if (!validClassroomId) return BadRequest();
+
+            var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
+            if (!validLessonId) return BadRequest();
+
+            var classroom = await _classroomService.FindAsync(classroomGuid);
+            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
+
+            if (!authorization.Succeeded) return Forbid();
+
+            var lesson = await _lessonService.FindAsync(lessonGuid);
+            await _lessonService.LoadAttendeesAsync(lesson);
+
+            return Ok(lesson.Attendees.ToList().Select(a => a.ToDto()));
+        }
+
         [HttpPost]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<LessonDto>> CreateLesson(
@@ -148,10 +214,39 @@ namespace Simp.Controllers
 
                 return Ok(lesson.ToDto());
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return BadRequest();
             }
+        }
+        
+        [HttpPost("{lessonId}/Attendance")]
+        [ServiceFilter(typeof(AddUserDataServiceFilter))]
+        public async Task<ActionResult<bool>> CreateUserAttendance(
+            [FromRoute] string classroomId,
+            [FromRoute] string lessonId,
+            [FromBody] int code
+        )
+        {
+            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
+            Debug.Assert(user != null, nameof(user) + " != null");
+        
+            var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
+            if (!validClassroomId) return BadRequest();
+        
+            var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
+            if (!validLessonId) return BadRequest();
+        
+            var classroom = await _classroomService.FindAsync(classroomGuid);
+            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
+        
+            if (!authorization.Succeeded) return Forbid();
+            
+            var lesson = await _lessonService.FindAsync(lessonGuid);
+
+            var success = await _attendanceService.CreateUserAttendanceAsync(lesson, user, code);
+
+            return Ok(success);
         }
     }
 }

@@ -19,7 +19,7 @@ export const join = async(code: string): Promise<Classroom> => {
 };
 
 export const isPrivileged = async (classroomId: string): Promise<boolean> => {
-    return (await apiClient.get(`Classrooms/${classroomId}/Privileged`)).ok;
+    return await apiClient.get(`Classrooms/${classroomId}/Privileged`).json<boolean>();
 };
 
 export const getJoinCode = async (classroomId: string): Promise<string> => {
