@@ -1,6 +1,7 @@
-﻿import { apiClient } from "./Base";
+﻿import { apiClient } from "./base";
 import Classroom from "../../models/Classroom";
 import User from "../../models/User";
+import Venue from "../../models/Venue";
 
 export const get = async (): Promise<Classroom[]> => {
     return await apiClient.get("Classrooms/").json<Classroom[]>();
@@ -12,6 +13,10 @@ export const find = async(classroomId: string): Promise<Classroom> => {
 
 export const create = async (json: Classroom): Promise<Classroom> => {
     return await apiClient.post("Classrooms/", { json }).json<Classroom>();
+};
+
+export const createVenue = async (classroomId: string, json: Venue): Promise<Venue> => {
+    return await apiClient.post(`Classrooms/${classroomId}/Venues`, { json }).json<Venue>();
 };
 
 export const join = async(code: string): Promise<Classroom> => {
@@ -30,14 +35,21 @@ export const getUsers = async (classroomId: string): Promise<User[]> => {
     return await apiClient.get(`Classrooms/${classroomId}/Users`).json<User[]>();
 };
 
+export const getVenues = async(classroomId: string): Promise<Venue[]> => {
+    console.log(classroomId);
+    return await apiClient.get(`Classrooms/${classroomId}/Venues`).json<Venue[]>();
+};
+
 const classrooms = {
     get,
     find,
     create,
+    createVenue,
     join,
     isPrivileged,
     getJoinCode,
-    getUsers
+    getUsers,
+    getVenues
 };
 
 export default classrooms;

@@ -1,5 +1,5 @@
 import { WebStorageStateStore } from "oidc-client";
-import { authClient } from "./Base";
+import { authClient } from "./base";
 
 export interface OidcConfigResponse {
     automaticSilentRenew?: boolean;

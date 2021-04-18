@@ -47,6 +47,13 @@ namespace Simp.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task AddVenueAsync(Classroom classroom, Venue venue)
+        {
+            await _dbContext.Entry(classroom).Collection(c => c.Venues).LoadAsync();
+            classroom.Venues.Add(venue);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<Classroom> CreateAsync(Classroom classroom)
         {
             if (await _dbContext.Classrooms.AnyAsync(c => c.JoinCode == classroom.JoinCode))
@@ -59,6 +66,13 @@ namespace Simp.Services
             await _dbContext.SaveChangesAsync();
 
             return newClassroom.Entity;
+        }
+
+        public async Task<Venue> CreateVenueAsync(Venue venue)
+        {
+            var newVenue = await _dbContext.Venues.AddAsync(venue);
+            await _dbContext.SaveChangesAsync();
+            return newVenue.Entity;
         }
 
         public async Task DeleteAsync(Guid guid)
@@ -76,6 +90,12 @@ namespace Simp.Services
         public async Task<Classroom> LoadUsersAsync(Classroom classroom)
         {
             await _dbContext.Entry(classroom).Collection(c => c.Users).LoadAsync();
+            return classroom;
+        }
+
+        public async Task<Classroom> LoadVenuesAsync(Classroom classroom)
+        {
+            await _dbContext.Entry(classroom).Collection(c => c.Venues).LoadAsync();
             return classroom;
         }
     }

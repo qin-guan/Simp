@@ -10,6 +10,7 @@ namespace Simp.Models
         public int JoinCode { get; set; }
         
         public List<Lesson> Lessons { get; set; }
+        public List<Venue> Venues { get; set; }
         public ICollection<ApplicationUser> Users { get; set; }
     }
 }

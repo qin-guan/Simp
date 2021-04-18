@@ -2,7 +2,7 @@
 
 namespace Simp.Dtos
 {
-    public class ClassroomDto
+    public class VenueDto
     {
         public string Id { get; set; }
         [Required] public string Name { get; set; }

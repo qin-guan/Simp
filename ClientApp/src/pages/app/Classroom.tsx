@@ -1,7 +1,7 @@
 ﻿import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useLocation, useParams } from "react-router";
+import { useParams } from "react-router";
 import { Link } from "react-router-dom";
 
 import {
@@ -15,13 +15,21 @@ import {
     TabList,
     Tabs,
     TabPanel,
-    TabPanels, Stat, StatLabel, StatNumber, StatHelpText, Wrap, WrapItem, Avatar
+    TabPanels,
+    Stat, 
+    StatLabel, 
+    StatNumber, 
+    StatHelpText, 
+    Wrap, 
+    WrapItem, 
+    Avatar,
+    HStack
 } from "@chakra-ui/react";
 
 import authorizationService from "../../oidc/AuthorizationService";
 
-import lessonsApi from "../../api/http/Lesson";
-import classroomsApi from "../../api/http/Classroom";
+import lessonsApi from "../../api/http/lessons";
+import classroomsApi from "../../api/http/classrooms";
 
 import ClassroomInstance from "../../models/Classroom";
 import Lesson from "../../models/Lesson";
@@ -32,8 +40,8 @@ import AppNavBar from "../../components/app/AppNavBar";
 import User from "../../models/User";
 
 const Classroom = (): React.ReactElement | null => {
-    const { classroomId } = useParams<{classroomId: string}>();
-    
+    const { classroomId } = useParams<{ classroomId: string }>();
+
     const [classroom, setClassroom] = useState<ClassroomInstance>({ Id: "", Name: "" });
     const [isPrivileged, setIsPrivileged] = useState(false);
     const [joinCode, setJoinCode] = useState("");
@@ -45,47 +53,53 @@ const Classroom = (): React.ReactElement | null => {
 
     const teachingLessons = useMemo(() => {
         return lessons.filter(l => l.Teachers.some(t => t.Id === userId));
-    }, [lessons]);
-
-    const getLessons = async () => {
+    }, [lessons, userId]);
+    
+    
+    const fetchClassroomAndPrivileges = useCallback(async () => {
         try {
-            setStatus(Status.Loading);
+            const [classroom, owner] = await Promise.all([classroomsApi.find(classroomId), classroomsApi.isPrivileged(classroomId)]);
+            if (owner) {
+                const [joinCode, classroomUsers] = await Promise.all([classroomsApi.getJoinCode(classroomId), classroomsApi.getUsers(classroomId)]);
+                setJoinCode(joinCode);
+                setClassroomUsers(classroomUsers);
+            }
+            setIsPrivileged(owner);
+            setClassroom(classroom);
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, [classroomId]);
+
+    const fetchLessons = useCallback(async () => {
+        try {
             const lessons = await lessonsApi.get(classroomId);
             setLessons(lessons);
             lessons.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
         } catch {
             setStatus(Status.Error);
         }
-    };
-
-    const getProfile = async () => {
-        setUserId((await authorizationService.getUserProfile()).sub);
-    };
+    }, [classroomId]);
+    
+    const fetchProfile = useCallback(async () => {
+        try {
+            setUserId((await authorizationService.getUserProfile()).sub);
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, []);
+    
 
     useEffect(() => {
-        const findClassroom = async () => {
-            try {
-                const [classroom, owner] = await Promise.all([classroomsApi.find(classroomId), classroomsApi.isPrivileged(classroomId)]);
-                if (owner) {
-                    const [joinCode, classroomUsers] = await Promise.all([classroomsApi.getJoinCode(classroomId), classroomsApi.getUsers(classroomId)]);
-                    setJoinCode(joinCode);
-                    setClassroomUsers(classroomUsers);
-                }
-                setIsPrivileged(owner);
-                setClassroom(classroom);
-            } catch {
-                setStatus(Status.Error);
-            }
-        };
-        
-        findClassroom();
-        getProfile();
-        getLessons();
-    }, []);
+        fetchClassroomAndPrivileges();
+        fetchProfile();
+        fetchLessons();
+    }, [fetchClassroomAndPrivileges, fetchProfile, fetchLessons]);
 
     const openCreateLessonModal = () => setIsCreateLessonModalOpen(true);
     const closeCreateLessonModal = () => setIsCreateLessonModalOpen(false);
-    const onCreateLesson = () => getLessons();
+    
+    const onLessonCreated = () => fetchLessons();
 
     return (
         <Flex w={"full"} h={"full"} direction={"column"}>
@@ -96,7 +110,7 @@ const Classroom = (): React.ReactElement | null => {
                 isOpen={isCreateLessonModalOpen}
 
                 onClose={closeCreateLessonModal}
-                onCreate={onCreateLesson}
+                onCreate={onLessonCreated}
             />
             <Flex justifyContent={"center"} p={4} style={{ flex: 1 }}>
                 {{
@@ -187,10 +201,18 @@ const Classroom = (): React.ReactElement | null => {
                         <Wrap maxW={"3xs"}>
                             {classroomUsers.map((user, idx) => (
                                 <WrapItem key={idx.toString()}>
-                                    <Avatar name={user.Name} />
+                                    <Avatar name={user.Name}/>
                                 </WrapItem>
                             ))}
                         </Wrap>
+                        <HStack spacing={"2"} mt={5}>
+                            <Link to={`/app/classrooms/${classroomId}/dashboard`}>
+                                <Button colorScheme={"blue"}>Dashboard</Button>
+                            </Link>
+                            <Link to={`/app/classrooms/${classroomId}/settings`}>
+                                <Button colorScheme={"cyan"}>Settings</Button>
+                            </Link>
+                        </HStack>
                     </Box>
                 )}
             </Flex>

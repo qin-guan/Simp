@@ -7,10 +7,8 @@ import {
     ModalHeader,
     ModalOverlay,
     Table,
-    TableCaption,
     Tbody,
     Td,
-    Tfoot,
     Th,
     Thead,
     Tr,
@@ -24,32 +22,33 @@ import {
     PopoverBody,
     Popover, PopoverFooter
 } from "@chakra-ui/react";
-import User from "../../../models/User";
-import lessonsApi from "../../../api/http/Lesson";
 import { RepeatIcon } from "@chakra-ui/icons";
-import ClassroomInstance from "../../../models/Classroom";
-import LessonInstance from "../../../models/Lesson";
+
+import lessonsApi from "../../../api/http/lessons";
+
+import User from "../../../models/User";
+import Classroom from "../../../models/Classroom";
+import Lesson from "../../../models/Lesson";
 
 interface AttendeeListModalProps {
-    isOpen: boolean
-    onClose: () => void
-    onReloadAttendees: () => void
-    onReloadAttendance: () => void
-    classroom: ClassroomInstance
-    lesson: LessonInstance
-    attendees: User[]
+    isOpen: boolean;
+    classroom: Classroom;
+    lesson: Lesson;
+    attendees: User[];
+
+    onClose: () => void;
+    reloadAttendees: () => void;
+    reloadAttendance: () => void;
 }
 
 const AttendeeListModal = (props: AttendeeListModalProps): React.ReactElement => {
-    const { isOpen, onClose, attendees, classroom, lesson, onReloadAttendees, onReloadAttendance } = props;
+    const { isOpen, onClose, attendees, classroom, lesson, reloadAttendees, reloadAttendance } = props;
 
-    const onDeleteUserAttendance = async (userId: string) => {
-
-
+    const deleteUserAttendance = async (userId: string) => {
         await lessonsApi.deleteAttendance(classroom.Id, lesson.Id, userId);
 
-        onReloadAttendees();
-        onReloadAttendance();
+        reloadAttendees();
+        reloadAttendance();
     };
 
     return (
@@ -58,7 +57,7 @@ const AttendeeListModal = (props: AttendeeListModalProps): React.ReactElement =>
             <ModalContent>
                 <ModalHeader>
                     Attendees
-                    <IconButton ml={3} aria-label={"Reload"} icon={<RepeatIcon/>} onClick={onReloadAttendees}/>
+                    <IconButton ml={3} aria-label={"Reload"} icon={<RepeatIcon/>} onClick={reloadAttendees}/>
                 </ModalHeader>
                 <ModalCloseButton/>
                 <ModalBody>
@@ -94,7 +93,7 @@ const AttendeeListModal = (props: AttendeeListModalProps): React.ReactElement =>
                                                 </PopoverBody>
                                                 <PopoverFooter>
                                                     <Button colorScheme={"red"}
-                                                        onClick={async () => await onDeleteUserAttendance(attendee.Id)}>Confirm</Button>
+                                                        onClick={async () => await deleteUserAttendance(attendee.Id)}>Confirm</Button>
                                                 </PopoverFooter>
                                             </PopoverContent>
                                         </Popover>

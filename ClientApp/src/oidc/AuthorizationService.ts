@@ -1,6 +1,6 @@
 import { User, UserManager, WebStorageStateStore, Profile } from "oidc-client";
 
-import { get } from "../api/http/Oidc";
+import { get } from "../api/http/oidc";
 import { ApplicationName, OidcPaths } from "./AuthorizationConstants";
 
 export enum AuthorizationStatus {

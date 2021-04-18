@@ -13,25 +13,25 @@ import {
     Button,
 } from "@chakra-ui/react";
 
-import classroomsApi from "../../api/http/Classroom";
+import classroomsApi from "../../api/http/classrooms";
 import { useRef, useState } from "react";
 
 export interface CreateClassroomModalProps {
-    isOpen: boolean,
-    onClose: () => void,
-    onCreate: () => void,
+    isOpen: boolean;
+    onClose: () => void;
+    onCreate: () => void;
 }
 
 const CreateClassroomModal = (props: CreateClassroomModalProps): React.ReactElement => {
     const { isOpen, onClose, onCreate } = props;
 
     const [classroomName, setClassroomName] = useState("");
-    const [creatingClassroom, setCreatingClassroom] = useState(false);
+    const [isCreatingClassroom, setIsCreatingClassroom] = useState(false);
 
     const initialRef = useRef(null);
 
-    const onClassroomCreate = async () => {
-        setCreatingClassroom(true);
+    const createClassroom = async () => {
+        setIsCreatingClassroom(true);
 
         try {
             await classroomsApi.create({
@@ -45,11 +45,11 @@ const CreateClassroomModal = (props: CreateClassroomModalProps): React.ReactElem
         } catch (error) {
             console.error(error);
         } finally {
-            setCreatingClassroom(false);
+            setIsCreatingClassroom(false);
         }
     };
 
-    const onClassroomNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onClassroomNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setClassroomName(event.currentTarget.value);
     };
 
@@ -71,18 +71,18 @@ const CreateClassroomModal = (props: CreateClassroomModalProps): React.ReactElem
                             ref={initialRef}
                             placeholder="Swift Coding Class"
                             value={classroomName}
-                            onChange={onClassroomNameChange}
+                            onChange={onClassroomNameChanged}
                         />
                     </FormControl>
                 </ModalBody>
 
                 <ModalFooter>
                     <Button
-                        isLoading={creatingClassroom}
+                        isLoading={isCreatingClassroom}
                         isDisabled={!classroomName}
                         colorScheme="blue"
                         mr={3}
-                        onClick={onClassroomCreate}
+                        onClick={createClassroom}
                     >
                         Create
                     </Button>

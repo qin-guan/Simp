@@ -1,4 +1,5 @@
 ﻿import * as React from "react";
+import { NavLink } from "react-router-dom";
 
 import {
     Box,
@@ -17,7 +18,6 @@ import {
 import { ChevronDownIcon, ChevronRightIcon } from "@chakra-ui/icons";
 
 import { OidcPaths } from "../../oidc/AuthorizationConstants";
-import { NavLink } from "react-router-dom";
 
 interface ClassroomNavBarProps {
     classroomName: string;

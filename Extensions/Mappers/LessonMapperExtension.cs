@@ -35,6 +35,11 @@ namespace Simp.Extensions.Mappers
             var validId = Guid.TryParse(lessonDto.Id, out var id);
             if (!validId && !string.IsNullOrWhiteSpace(lessonDto.Id)) throw new Exception("Invalid Classroom.Id");
 
+            if (lessonDto.EndDate == 0 || lessonDto.StartDate == 0) throw new Exception("End/Start date not specified");
+            if (lessonDto.EndDate < lessonDto.StartDate) throw new Exception("End date cannot be before start date");
+            if (DateTimeOffset.Now.ToUnixTimeMilliseconds() > lessonDto.EndDate)
+                throw new Exception("End date cannot be in the past");
+
             return new Lesson
             {
                 Id = id,

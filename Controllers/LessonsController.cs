@@ -22,7 +22,7 @@ namespace Simp.Controllers
         private readonly LessonService _lessonService;
         private readonly AttendanceService _attendanceService;
         private readonly ClassroomService _classroomService;
-        
+
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuthorizationService _authorizationService;
 
@@ -30,7 +30,6 @@ namespace Simp.Controllers
             LessonService lessonService,
             ClassroomService classroomService,
             AttendanceService attendanceService,
-            
             UserManager<ApplicationUser> userManager,
             IAuthorizationService authorizationService
         )
@@ -55,16 +54,24 @@ namespace Simp.Controllers
             var validId = Guid.TryParse(classroomId, out var guid);
             if (!validId) return BadRequest();
 
-            var classroom = await _classroomService.FindAsync(guid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
+            try
+            {
+                var classroom = await _classroomService.FindAsync(guid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
 
-            if (!authorization.Succeeded) return Forbid();
+                if (!authorization.Succeeded) return Forbid();
 
-            var lessons = await _lessonService.FindByClassroomAsync(guid);
-            lessons = await Task.WhenAll(lessons.Select(async l => await _lessonService.LoadTeachersAsync(l)));
-            var lessonDtos = lessons.Select(l => l.ToDto());
+                var lessons = await _lessonService.FindByClassroomAsync(guid);
+                lessons = await Task.WhenAll(lessons.Select(async l => await _lessonService.LoadTeachersAsync(l)));
+                var lessonDtos = lessons.Select(l => l.ToDto());
 
-            return Ok(lessonDtos);
+                return Ok(lessonDtos);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
         }
 
         [HttpGet("{lessonId}")]
@@ -83,15 +90,23 @@ namespace Simp.Controllers
             var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
             if (!validLessonId) return BadRequest();
 
-            var classroom = await _classroomService.FindAsync(classroomGuid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
+            try
+            {
+                var classroom = await _classroomService.FindAsync(classroomGuid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
 
-            if (!authorization.Succeeded) return Forbid();
+                if (!authorization.Succeeded) return Forbid();
 
-            var lesson = await _lessonService.FindAsync(lessonGuid);
-            await _lessonService.LoadTeachersAsync(lesson);
+                var lesson = await _lessonService.FindAsync(lessonGuid);
+                await _lessonService.LoadTeachersAsync(lesson);
 
-            return Ok(lesson.ToDto());
+                return Ok(lesson.ToDto());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
         }
 
         [HttpGet("{lessonId}/Code")]
@@ -110,16 +125,24 @@ namespace Simp.Controllers
             var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
             if (!validLessonId) return BadRequest();
 
-            var classroom = await _classroomService.FindAsync(classroomGuid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
+            try
+            {
+                var classroom = await _classroomService.FindAsync(classroomGuid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
 
-            if (!authorization.Succeeded) return Forbid();
+                if (!authorization.Succeeded) return Forbid();
 
-            var lesson = await _lessonService.FindAsync(lessonGuid);
+                var lesson = await _lessonService.FindAsync(lessonGuid);
 
-            var verificationCode = await _attendanceService.GetVerificationCodeAsync(lesson);
+                var verificationCode = await _attendanceService.GetVerificationCodeAsync(lesson);
 
-            return Ok(verificationCode.Code);
+                return Ok(verificationCode.Code);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -137,22 +160,30 @@ namespace Simp.Controllers
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
-        
+
             var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
             if (!validClassroomId) return BadRequest();
-        
+
             var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
             if (!validLessonId) return BadRequest();
-        
-            var classroom = await _classroomService.FindAsync(classroomGuid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
-        
-            if (!authorization.Succeeded) return Forbid();
-            
-            var lesson = await _lessonService.FindAsync(lessonGuid);
-            await _lessonService.LoadAttendeesAsync(lesson);
 
-            return Ok(lesson.Attendees.Contains(user));
+            try
+            {
+                var classroom = await _classroomService.FindAsync(classroomGuid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
+
+                if (!authorization.Succeeded) return Forbid();
+
+                var lesson = await _lessonService.FindAsync(lessonGuid);
+                await _lessonService.LoadAttendeesAsync(lesson);
+
+                return Ok(lesson.Attendees.Contains(user));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -177,15 +208,23 @@ namespace Simp.Controllers
             var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
             if (!validLessonId) return BadRequest();
 
-            var classroom = await _classroomService.FindAsync(classroomGuid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
+            try
+            {
+                var classroom = await _classroomService.FindAsync(classroomGuid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
 
-            if (!authorization.Succeeded) return Forbid();
+                if (!authorization.Succeeded) return Forbid();
 
-            var lesson = await _lessonService.FindAsync(lessonGuid);
-            await _lessonService.LoadAttendeesAsync(lesson);
+                var lesson = await _lessonService.FindAsync(lessonGuid);
+                await _lessonService.LoadAttendeesAsync(lesson);
 
-            return Ok(lesson.Attendees.ToList().Select(a => a.ToDto()));
+                return Ok(lesson.Attendees.ToList().Select(a => a.ToDto()));
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
         }
 
         [HttpPost]
@@ -201,10 +240,10 @@ namespace Simp.Controllers
             var validId = Guid.TryParse(classroomId, out var guid);
             if (!validId) return BadRequest();
 
-            var classroom = await _classroomService.FindAsync(guid);
-
             try
             {
+                var classroom = await _classroomService.FindAsync(guid);
+
                 var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
 
                 if (!authorization.Succeeded) return Forbid();
@@ -219,12 +258,13 @@ namespace Simp.Controllers
 
                 return Ok(lesson.ToDto());
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 return BadRequest();
             }
         }
-        
+
         [HttpPost("{lessonId}/Attendance")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<bool>> CreateUserAttendance(
@@ -235,24 +275,33 @@ namespace Simp.Controllers
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
-        
+
             var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
             if (!validClassroomId) return BadRequest();
-        
+
             var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
             if (!validLessonId) return BadRequest();
-        
-            var classroom = await _classroomService.FindAsync(classroomGuid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
-        
-            if (!authorization.Succeeded) return Forbid();
-            
-            var lesson = await _lessonService.FindAsync(lessonGuid);
 
-            var success = await _attendanceService.CreateUserAttendanceAsync(lesson, user, code);
+            try
+            {
+                var classroom = await _classroomService.FindAsync(classroomGuid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
 
-            return Ok(success);
+                if (!authorization.Succeeded) return Forbid();
+
+                var lesson = await _lessonService.FindAsync(lessonGuid);
+
+                var success = await _attendanceService.CreateUserAttendanceAsync(lesson, user, code);
+
+                return Ok(success);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
         }
+
         [HttpDelete("{lessonId}/Attendance")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<bool>> RemoveUserAttendence(
@@ -263,24 +312,32 @@ namespace Simp.Controllers
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
-        
+
             var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
             if (!validClassroomId) return BadRequest();
-        
+
             var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
             if (!validLessonId) return BadRequest();
-        
-            var classroom = await _classroomService.FindAsync(classroomGuid);
-            var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
-        
-            if (!authorization.Succeeded) return Forbid();
-            
-            var lesson = await _lessonService.FindAsync(lessonGuid);
-            var targetUser = await _userManager.FindByIdAsync(userId);
-            
-            await _attendanceService.DeleteUserAttendanceAsync(lesson, targetUser);
-            
-            return Ok();
+
+            try
+            {
+                var classroom = await _classroomService.FindAsync(classroomGuid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
+
+                if (!authorization.Succeeded) return Forbid();
+
+                var lesson = await _lessonService.FindAsync(lessonGuid);
+                var targetUser = await _userManager.FindByIdAsync(userId);
+
+                await _attendanceService.DeleteUserAttendanceAsync(lesson, targetUser);
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
         }
     }
 }

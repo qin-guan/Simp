@@ -21,17 +21,16 @@ import {
     useToast
 } from "@chakra-ui/react";
 
-import lessonsApi from "../../api/http/Lesson";
+import lessonsApi from "../../api/http/lessons";
 import { useMemo, useRef, useState } from "react";
 import LessonType from "../../models/LessonType";
 
 export interface CreateLessonModalProps {
-    isOpen: boolean,
+    classroomId: string;
+    isOpen: boolean;
 
-    classroomId: string,
-
-    onClose: () => void,
-    onCreate: () => void,
+    onClose: () => void;
+    onCreate: () => void;
 }
 
 const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement => {
@@ -44,17 +43,17 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
     const [meetingUri, setMeetingUri] = useState("");
     const [lessonType, setLessonType] = useState<string>(LessonType.InPerson);
     
-    const [creatingLesson, setCreatingLesson] = useState(false);
+    const [isCreatingLesson, setIsCreatingLesson] = useState(false);
 
     const initialRef = useRef(null);
     const toast = useToast();
     
-    const createButtonDisabled = useMemo(() => {
+    const isCreateButtonDisabled = useMemo(() => {
         return !(lessonName && !isNaN(Date.parse(startDate)) && !isNaN(Date.parse(endDate)));
     }, [lessonName, startDate, endDate]);
 
-    const onLessonCreate = async () => {
-        setCreatingLesson(true);
+    const createLesson = async () => {
+        setIsCreatingLesson(true);
         
         try {
             await lessonsApi.create(classroomId, {
@@ -85,26 +84,26 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
             });
             console.error(error);
         } finally {
-            setCreatingLesson(false);
+            setIsCreatingLesson(false);
         }
     };
 
-    const onLessonNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onLessonNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setLessonName(event.currentTarget.value);
     };
 
-    const onLessonDescriptionChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const onLessonDescriptionChanged = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
         setLessonDescription(event.currentTarget.value);
     };
 
-    const onLessonMeetingUriChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onLessonMeetingUriChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setMeetingUri(event.currentTarget.value);
     };
 
-    const onStartDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onStartDateChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setStartDate(event.currentTarget.value);
     };
-    const onEndDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onEndDateChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEndDate(event.currentTarget.value);
     };
 
@@ -137,7 +136,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                                 ref={initialRef}
                                 placeholder="Lesson Zero"
                                 value={lessonName}
-                                onChange={onLessonNameChange}
+                                onChange={onLessonNameChanged}
                             />
                         </FormControl>
                         <FormControl>
@@ -145,7 +144,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                             <Textarea
                                 placeholder="First lesson that will cover Swift Basics"
                                 value={lessonDescription}
-                                onChange={onLessonDescriptionChange}
+                                onChange={onLessonDescriptionChanged}
                             />
                         </FormControl>
                         <HStack w={"full"} spacing={3}>
@@ -154,7 +153,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                                 <Input
                                     placeholder={new Date().toUTCString()}
                                     value={startDate}
-                                    onChange={onStartDateChange}
+                                    onChange={onStartDateChanged}
                                 />
                                 <FormHelperText>Not ideal, I know</FormHelperText>
                             </FormControl>
@@ -163,7 +162,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                                 <Input
                                     placeholder={new Date().toUTCString()}
                                     value={endDate}
-                                    onChange={onEndDateChange}
+                                    onChange={onEndDateChanged}
                                 />
                                 <FormHelperText>Make sure it&apos;s correct!</FormHelperText>
                             </FormControl>
@@ -173,7 +172,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                             <Input
                                 placeholder="https://meet.google.com"
                                 value={meetingUri}
-                                onChange={onLessonMeetingUriChange}
+                                onChange={onLessonMeetingUriChanged}
                             />
                             <FormHelperText>A link will be made automatically if this field is left
                                 empty.</FormHelperText>
@@ -183,11 +182,11 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
 
                 <ModalFooter>
                     <Button
-                        isLoading={creatingLesson}
-                        isDisabled={createButtonDisabled}
+                        isLoading={isCreatingLesson}
+                        isDisabled={isCreateButtonDisabled}
                         colorScheme="blue"
                         mr={3}
-                        onClick={onLessonCreate}
+                        onClick={createLesson}
                     >
                         Create
                     </Button>

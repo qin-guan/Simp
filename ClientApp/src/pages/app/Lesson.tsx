@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 
 import { useParams } from "react-router";
 import {
@@ -15,32 +15,33 @@ import {
     WrapItem,
     IconButton
 } from "@chakra-ui/react";
+import { RepeatIcon } from "@chakra-ui/icons";
 
-import ClassroomInstance from "../../models/Classroom";
+import Classroom from "../../models/Classroom";
 import LessonInstance from "../../models/Lesson";
 import Status from "../../models/Status";
 
-import classroomsApi from "../../api/http/Classroom";
-import lessonsApi from "../../api/http/Lesson";
+import classroomsApi from "../../api/http/classrooms";
+import lessonsApi from "../../api/http/lessons";
 
 import AppNavBar from "../../components/app/AppNavBar";
-import LessonType from "../../models/LessonType";
 import AttendanceCodeModal from "../../components/app/AttendanceCodeModal";
-import authorizationService from "../../oidc/AuthorizationService";
-import User from "../../models/User";
 import MarkAttendanceCodeModal from "../../components/app/lesson/MarkAttendanceCodeModal";
-
-import { RepeatIcon } from "@chakra-ui/icons";
 import AttendeeListModal from "../../components/app/lesson/AttendeeListModal";
 
+import authorizationService from "../../oidc/AuthorizationService";
+
+import User from "../../models/User";
+import LessonType from "../../models/LessonType";
+
 const Lesson = (): React.ReactElement => {
-    const { classroomId, lessonId } = useParams<{ classroomId: string, lessonId: string }>();
+    const { classroomId, lessonId } = useParams<{ classroomId: string; lessonId: string }>();
 
     const [isTeacher, setIsTeacher] = useState(false);
     const [attendees, setAttendees] = useState<User[]>([]);
     const [attendance, setAttendance] = useState(false);
     const [markAttendanceModalOpen, setMarkAttendanceModalOpen] = useState(false);
-    const [classroom, setClassroom] = useState<ClassroomInstance>({ Id: "", Name: "" });
+    const [classroom, setClassroom] = useState<Classroom>({ Id: "", Name: "" });
     const [lesson, setLesson] = useState<LessonInstance>({
         Id: "",
         Name: "",
@@ -56,48 +57,63 @@ const Lesson = (): React.ReactElement => {
     const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
     const [attendeeListOpen, setAttendeeListOpen] = useState(false);
 
-    const fetchAttendance = async () => {
-        const attendance = await lessonsApi.getAttendance(classroomId, lessonId);
-        setAttendance(attendance);
-    };
+    const fetchAttendance = useCallback(async () => {
+        try {
+            const attendance = await lessonsApi.getAttendance(classroomId, lessonId);
+            setAttendance(attendance);
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, [classroomId, lessonId]);
 
-    const fetchAttendees = async () => {
-        const lessonAttendees = await lessonsApi.getAttendees(classroomId, lessonId);
-        setAttendees(lessonAttendees);
-    };
+    const fetchAttendees = useCallback(async () => {
+        try {
+            const lessonAttendees = await lessonsApi.getAttendees(classroomId, lessonId);
+            setAttendees(lessonAttendees);
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, [classroomId, lessonId]);
+
+    const fetchClassroom = useCallback(async () => {
+        try {
+            const classroom = await classroomsApi.find(classroomId);
+            setClassroom(classroom);
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, [classroomId]);
+
+    const fetchLesson = useCallback(async () => {
+        try {
+            const lesson = await lessonsApi.find(classroomId, lessonId);
+            const profile = await authorizationService.getUserProfile();
+            if (lesson.Teachers.filter(t => t.Id === profile.sub).length > 0) {
+                fetchAttendees();
+                setIsTeacher(true);
+            }
+
+            setLesson(lesson);
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, [classroomId, lessonId]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const classroom = await classroomsApi.find(classroomId);
-                setClassroom(classroom);
-
-                const lesson = await lessonsApi.find(classroomId, lessonId);
-                const profile = await authorizationService.getUserProfile();
-                if (lesson.Teachers.filter(t => t.Id === profile.sub).length > 0) {
-                    fetchAttendees();
-                    setIsTeacher(true);
-                }
-
-                setLesson(lesson);
-                setStatus(Status.Done);
-            } catch (e) {
-                console.log(e);
-                setStatus(Status.Error);
-            }
-        };
-
-        fetchData();
+        fetchClassroom();
+        fetchLesson();
         fetchAttendance();
+        fetchAttendees();
+        setStatus(Status.Done);
     }, [classroomId, lessonId]);
 
     const navigateToMeeting = () => window.location.href = lesson.MeetingUri;
     const openAttendanceModal = () => setAttendanceModalOpen(true);
-    const onAttendanceModalClose = () => setAttendanceModalOpen(false);
+    const onAttendanceModalClosed = () => setAttendanceModalOpen(false);
 
     const openMarkAttendanceModal = () => setMarkAttendanceModalOpen(true);
-    const onMarkAttendanceModalClose = () => setMarkAttendanceModalOpen(false);
-    const onMarkedAttendance = async () => await fetchAttendance();
+    const onMarkAttendanceModalClosed = () => setMarkAttendanceModalOpen(false);
+    const onAttendanceMarked = async () => await fetchAttendance();
 
     const closeAttendeeList = () => setAttendeeListOpen(false);
     const openAttendeeList = () => setAttendeeListOpen(true);
@@ -109,15 +125,15 @@ const Lesson = (): React.ReactElement => {
                 classroom={classroom}
 
                 isOpen={attendanceModalOpen}
-                onClose={onAttendanceModalClose}
+                onClose={onAttendanceModalClosed}
             />}
             <MarkAttendanceCodeModal
                 classroom={classroom}
                 lesson={lesson}
 
                 isOpen={markAttendanceModalOpen}
-                onClose={onMarkAttendanceModalClose}
-                onMarkedAttendance={onMarkedAttendance}
+                onClose={onMarkAttendanceModalClosed}
+                onAttendanceMarked={onAttendanceMarked}
             />
             <AttendeeListModal
                 attendees={attendees}
@@ -126,8 +142,8 @@ const Lesson = (): React.ReactElement => {
 
                 isOpen={attendeeListOpen}
                 onClose={closeAttendeeList}
-                onReloadAttendance={fetchAttendance}
-                onReloadAttendees={fetchAttendees}
+                reloadAttendance={fetchAttendance}
+                reloadAttendees={fetchAttendees}
             />
             <AppNavBar breadcrumbs={[{ name: classroom.Name, path: `/app/classrooms/${classroomId}` }, {
                 name: lesson.Name,

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useState } from "react";
 
 import {
     Modal,
@@ -6,40 +7,38 @@ import {
     ModalContent,
     ModalCloseButton,
     ModalBody,
-    Text,
     PinInputField,
     HStack,
-    PinInput, 
-    ModalHeader, 
-    ModalFooter, 
+    PinInput,
+    ModalHeader,
+    ModalFooter,
     Button,
     useToast
 } from "@chakra-ui/react";
 
-import LessonInstance from "../../../models/Lesson";
-import { useEffect, useState } from "react";
+import Lesson from "../../../models/Lesson";
+import Classroom from "../../../models/Classroom";
 
-import ClassroomInstance from "../../../models/Classroom";
-import Status from "../../../models/Status";
-import lessonsApi from "../../../api/http/Lesson";
+import lessonsApi from "../../../api/http/lessons";
 
 interface MarkAttendanceCodeModalProps {
-    isOpen: boolean
-    onClose: () => void
-    onMarkedAttendance: () => void
-    classroom: ClassroomInstance
-    lesson: LessonInstance
+    isOpen: boolean;
+    classroom: Classroom;
+    lesson: Lesson;
+
+    onClose: () => void;
+    onAttendanceMarked: () => void;
 }
 
 const MarkAttendanceCodeModal = (props: MarkAttendanceCodeModalProps): React.ReactElement => {
-    const { isOpen, onClose, onMarkedAttendance, classroom, lesson } = props;
+    const { isOpen, onClose, onAttendanceMarked, classroom, lesson } = props;
 
     const [code, setCode] = useState<string>("");
     const [markingAttendance, setMarkingAttendance] = useState(false);
 
     const toast = useToast();
 
-    const onMarkAttendance = async () => {
+    const markAttendance = async () => {
         setMarkingAttendance(true);
 
         const parsedCode = parseInt(code);
@@ -63,7 +62,7 @@ const MarkAttendanceCodeModal = (props: MarkAttendanceCodeModalProps): React.Rea
             }
 
             setCode("");
-            onMarkedAttendance();
+            onAttendanceMarked();
             onClose();
         } catch (error) {
             console.error(error);
@@ -72,7 +71,7 @@ const MarkAttendanceCodeModal = (props: MarkAttendanceCodeModalProps): React.Rea
         }
     };
 
-    const onCodeChange = (value: string) => setCode(value);
+    const onCodeChanged = (value: string) => setCode(value);
 
     return (
         <Modal onClose={onClose} isOpen={isOpen} isCentered>
@@ -82,7 +81,7 @@ const MarkAttendanceCodeModal = (props: MarkAttendanceCodeModalProps): React.Rea
                 <ModalCloseButton/>
                 <ModalBody pb={6}>
                     <HStack>
-                        <PinInput value={code} onChange={onCodeChange}>
+                        <PinInput value={code} onChange={onCodeChanged}>
                             <PinInputField/>
                             <PinInputField/>
                             <PinInputField/>
@@ -97,7 +96,7 @@ const MarkAttendanceCodeModal = (props: MarkAttendanceCodeModalProps): React.Rea
                         isDisabled={!code}
                         colorScheme="blue"
                         mr={3}
-                        onClick={onMarkAttendance}
+                        onClick={markAttendance}
                     >
                         Join
                     </Button>

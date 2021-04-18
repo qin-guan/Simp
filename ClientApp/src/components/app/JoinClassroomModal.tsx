@@ -1,4 +1,6 @@
 ﻿import * as React from "react";
+import { useRef, useState } from "react";
+
 import {
     Modal,
     ModalOverlay,
@@ -7,16 +9,18 @@ import {
     ModalBody,
     ModalFooter,
     ModalCloseButton,
-    Button, PinInputField, PinInput, HStack,
+    Button, 
+    PinInputField, 
+    PinInput, 
+    HStack,
 } from "@chakra-ui/react";
 
-import classroomsApi from "../../api/http/Classroom";
-import { useRef, useState } from "react";
+import classroomsApi from "../../api/http/classrooms";
 
 export interface JoinClassroomModalProps {
-    isOpen: boolean,
-    onClose: () => void,
-    onJoin: () => void,
+    isOpen: boolean;
+    onClose: () => void;
+    onJoin: () => void;
 }
 
 const JoinClassroomModal = (props: JoinClassroomModalProps): React.ReactElement => {
@@ -54,18 +58,18 @@ const JoinClassroomModal = (props: JoinClassroomModalProps): React.ReactElement 
             onClose={onClose}
             isCentered
         >
-            <ModalOverlay />
+            <ModalOverlay/>
             <ModalContent>
                 <ModalHeader>Join classroom</ModalHeader>
-                <ModalCloseButton />
+                <ModalCloseButton/>
                 <ModalBody pb={6}>
                     <HStack>
                         <PinInput value={joinCode} onChange={onJoinCodeChange}>
-                            <PinInputField />
-                            <PinInputField />
-                            <PinInputField />
-                            <PinInputField />
-                            <PinInputField />
+                            <PinInputField/>
+                            <PinInputField/>
+                            <PinInputField/>
+                            <PinInputField/>
+                            <PinInputField/>
                         </PinInput>
                     </HStack>
                 </ModalBody>
@@ -78,7 +82,7 @@ const JoinClassroomModal = (props: JoinClassroomModalProps): React.ReactElement 
                         mr={3}
                         onClick={onClassroomJoin}
                     >
-                       Join 
+                        Join
                     </Button>
                     <Button onClick={onClose}>Cancel</Button>
                 </ModalFooter>

@@ -1,4 +1,4 @@
-﻿import { apiClient } from "./Base";
+﻿import { apiClient } from "./base";
 import Lesson from "../../models/Lesson";
 import User from "../../models/User";
 

@@ -1,24 +1,24 @@
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 import { Heading, Flex, Spinner, Button, Box, SimpleGrid } from "@chakra-ui/react";
 
 import AppNavBar from "../../components/app/AppNavBar";
-import classroomsApi from "../../api/http/Classroom";
+import classroomsApi from "../../api/http/classrooms";
 
 import Status from "../../models/Status";
-import ClassroomInstance from "../../models/Classroom";
+import Classroom from "../../models/Classroom";
 import CreateClassroomModal from "../../components/app/CreateClassroomModal";
 import JoinClassroomModal from "../../components/app/JoinClassroomModal";
 
 const Home = (): React.ReactElement => {
-    const [classrooms, setClassrooms] = useState<ClassroomInstance[]>([]);
+    const [classrooms, setClassrooms] = useState<Classroom[]>([]);
     const [isCreateClassroomModalOpen, setIsCreateClassroomModalOpen] = useState(false);
     const [isJoinClassroomModalOpen, setIsJoinClassroomModalOpen] = useState(false);
     const [status, setStatus] = useState(Status.Loading);
 
-    const getClassrooms = async () => {
+    const fetchClassrooms = useCallback(async () => {
         try {
             setStatus(Status.Loading);
             const classrooms = await classroomsApi.get();
@@ -27,32 +27,32 @@ const Home = (): React.ReactElement => {
         } catch {
             setStatus(Status.Error);
         }
-    };
-
+    }, []);
+    
     useEffect(() => {
-        getClassrooms();
+        fetchClassrooms();
     }, []);
 
     const openCreateClassroomModal = () => setIsCreateClassroomModalOpen(true);
     const closeCreateClassroomModal = () => setIsCreateClassroomModalOpen(false);
-    const onCreateClassroom = () => getClassrooms();
+    const onClassroomCreated = () => fetchClassrooms();
 
     const openJoinClassroomModal = () => setIsJoinClassroomModalOpen(true);
     const closeJoinClassroomModal = () => setIsJoinClassroomModalOpen(false);
-    const onJoinClassroom = () => getClassrooms();
+    const onClassroomJoined = () => fetchClassrooms();
 
     return (
         <Flex w={"full"} h={"full"} direction={"column"}>
             <JoinClassroomModal
                 isOpen={isJoinClassroomModalOpen}
 
-                onJoin={onJoinClassroom}
+                onJoin={onClassroomJoined}
                 onClose={closeJoinClassroomModal}
             />
             <CreateClassroomModal
                 isOpen={isCreateClassroomModalOpen}
 
-                onCreate={onCreateClassroom}
+                onCreate={onClassroomCreated}
                 onClose={closeCreateClassroomModal}
             />
             <AppNavBar/>
