@@ -23,7 +23,6 @@ const Home = (): React.ReactElement => {
             setStatus(Status.Loading);
             const classrooms = await classroomsApi.get();
             setClassrooms(classrooms);
-            classrooms.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
         } catch {
             setStatus(Status.Error);
         }
@@ -31,6 +30,7 @@ const Home = (): React.ReactElement => {
     
     useEffect(() => {
         fetchClassrooms();
+        classrooms.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
     }, []);
 
     const openCreateClassroomModal = () => setIsCreateClassroomModalOpen(true);

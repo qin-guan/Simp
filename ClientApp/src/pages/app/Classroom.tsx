@@ -75,7 +75,6 @@ const Classroom = (): React.ReactElement | null => {
         try {
             const lessons = await lessonsApi.get(classroomId);
             setLessons(lessons);
-            lessons.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
         } catch {
             setStatus(Status.Error);
         }
@@ -94,6 +93,7 @@ const Classroom = (): React.ReactElement | null => {
         fetchClassroomAndPrivileges();
         fetchProfile();
         fetchLessons();
+        lessons.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
     }, [fetchClassroomAndPrivileges, fetchProfile, fetchLessons]);
 
     const openCreateLessonModal = () => setIsCreateLessonModalOpen(true);
