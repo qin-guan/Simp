@@ -93,8 +93,11 @@ const Classroom = (): React.ReactElement | null => {
         fetchClassroomAndPrivileges();
         fetchProfile();
         fetchLessons();
-        lessons.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
     }, [fetchClassroomAndPrivileges, fetchProfile, fetchLessons]);
+    
+    useEffect(() => {
+        lessons.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
+    }, [lessons]);
 
     const openCreateLessonModal = () => setIsCreateLessonModalOpen(true);
     const closeCreateLessonModal = () => setIsCreateLessonModalOpen(false);

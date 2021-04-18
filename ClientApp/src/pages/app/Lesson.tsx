@@ -103,9 +103,8 @@ const Lesson = (): React.ReactElement => {
         fetchClassroom();
         fetchLesson();
         fetchAttendance();
-        fetchAttendees();
         setStatus(Status.Done);
-    }, [classroomId, lessonId]);
+    }, [fetchClassroom, fetchLesson, fetchAttendance]);
 
     const navigateToMeeting = () => window.location.href = lesson.MeetingUri;
     const openAttendanceModal = () => setAttendanceModalOpen(true);

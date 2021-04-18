@@ -30,8 +30,11 @@ const Home = (): React.ReactElement => {
     
     useEffect(() => {
         fetchClassrooms();
+    }, [fetchClassrooms]);
+    
+    useEffect(() => {
         classrooms.length === 0 ? setStatus(Status.Empty) : setStatus(Status.Done);
-    }, []);
+    }, [classrooms]);
 
     const openCreateClassroomModal = () => setIsCreateClassroomModalOpen(true);
     const closeCreateClassroomModal = () => setIsCreateClassroomModalOpen(false);
