@@ -10,7 +10,7 @@ export interface LessonInstance {
     StartDate: number;
     EndDate: number;
     MeetingUri: string;
-    Teachers: User[]
+    Teachers: User[];
 }
 
 export default LessonInstance;

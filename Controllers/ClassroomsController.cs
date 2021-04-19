@@ -154,34 +154,6 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpGet("{classroomId}/Venues")]
-        [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult<IEnumerable<VenueDto>>> GetClassroomVenues([FromRoute] string classroomId)
-        {
-            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
-            Debug.Assert(user != null, nameof(user) + " != null");
-
-            var validId = Guid.TryParse(classroomId, out var guid);
-            if (!validId) return BadRequest();
-
-            try
-            {
-                var classroom = await _classroomService.FindAsync(guid);
-
-                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
-                if (!authorization.Succeeded) return Forbid();
-
-                await _classroomService.LoadVenuesAsync(classroom);
-
-                return Ok(classroom.Venues.Select(v => v.ToDto()));
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return BadRequest();
-            }
-        }
-
         [HttpGet("Join/{joinCode}")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<ClassroomDto>> JoinClassroom([FromRoute] string joinCode)
@@ -246,40 +218,9 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpPost("{classroomId}/Venues")]
-        [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult<VenueDto>> CreateClassroomVenue([FromRoute] string classroomId,
-            [FromBody] VenueDto venueDto)
-        {
-            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
-            Debug.Assert(user != null, nameof(user) + " != null");
-
-            var validId = Guid.TryParse(classroomId, out var guid);
-            if (!validId) return BadRequest();
-
-            try
-            {
-                var classroom = await _classroomService.FindAsync(guid);
-
-                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
-                if (!authorization.Succeeded) return Forbid();
-
-                var venue = venueDto.ToVenue();
-                venue = await _classroomService.CreateVenueAsync(venue);
-                await _classroomService.AddVenueAsync(classroom, venue);
-
-                return Ok(venue.ToDto());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                return BadRequest();
-            }
-        }
-
         [HttpDelete("{classroomId}")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult> DeleteClassroom(
+        public async Task<ActionResult<bool>> DeleteClassroom(
             [FromRoute] string classroomId
         )
         {
@@ -291,9 +232,13 @@ namespace Simp.Controllers
 
             try
             {
-                await _classroomService.DeleteAsync(guid);
+                var classroom = await _classroomService.FindAsync(guid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
+                if (!authorization.Succeeded) return Forbid();
+                
+                await _classroomService.DeleteAsync(classroom);
 
-                return Ok();
+                return Ok(true);
             }
             catch (Exception e)
             {

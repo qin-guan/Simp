@@ -2,13 +2,36 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router";
 
-import { Box, Button, Flex, Heading, Spinner, Table, TableCaption, Tbody, Th, Thead, Tr, } from "@chakra-ui/react";
+import {
+    Box,
+    Button,
+    Flex,
+    Heading,
+    ModalBody,
+    Popover,
+    PopoverArrow,
+    PopoverBody,
+    PopoverCloseButton,
+    PopoverContent,
+    PopoverFooter,
+    PopoverHeader,
+    PopoverTrigger,
+    Spinner,
+    Table,
+    TableCaption,
+    Tbody,
+    Td,
+    Th,
+    Thead,
+    Tr,
+    useToast
+} from "@chakra-ui/react";
 
 import AppNavBar from "../../components/app/AppNavBar";
 import CreateVenueModal from "../../components/app/classroom/CreateVenueModal";
 
 import classroomsApi from "../../api/http/classrooms";
-import ClassroomInstance from "../../models/Classroom";
+import Classroom from "../../models/Classroom";
 import Status from "../../models/Status";
 import User from "../../models/User";
 import Lesson from "../../models/Lesson";
@@ -17,21 +40,25 @@ import Venue from "../../models/Venue";
 const ClassroomSettings = (): React.ReactElement => {
     const { classroomId } = useParams<{ classroomId: string }>();
 
-    const [classroom, setClassroom] = useState<ClassroomInstance>({ Id: "", Name: "" });
+    const [classroom, setClassroom] = useState<Classroom>({ Id: "", Name: "" });
     const [classroomUsers, setClassroomUsers] = useState<User[]>([]);
     const [venues, setVenues] = useState<Venue[]>([]);
     const [createVenueModalOpen, setCreateVenueModalOpen] = useState(false);
     const [userId, setUserId] = useState("");
     const [lessons, setLessons] = useState<Lesson[]>([]);
     const [status, setStatus] = useState(Status.Loading);
+    
+    const toast = useToast();
 
-    const fetchPrivileges = useCallback(async () => {
+    const fetchPrivilegesAndData = useCallback(async () => {
         try {
             const owner = await classroomsApi.isPrivileged(classroomId);
             if (!owner) {
                 window.location.href = "/app";
                 return;
             }
+
+            await Promise.all([fetchClassroomDetails(), fetchVenues()]);
         } catch {
             setStatus(Status.Error);
         }
@@ -39,7 +66,10 @@ const ClassroomSettings = (): React.ReactElement => {
 
     const fetchClassroomDetails = useCallback(async () => {
         try {
-            const [classroom, classroomUsers] = await Promise.all([classroomsApi.find(classroomId), classroomsApi.getUsers(classroomId)]);
+            const [classroom, classroomUsers] = await Promise.all([
+                classroomsApi.find(classroomId),
+                classroomsApi.getUsers(classroomId),
+            ]);
 
             setClassroomUsers(classroomUsers);
             setClassroom(classroom);
@@ -50,21 +80,33 @@ const ClassroomSettings = (): React.ReactElement => {
 
     const fetchVenues = useCallback(async () => {
         try {
-            const venues = await classroomsApi.getVenues(classroom.Id);
+            const venues = await classroomsApi.getVenues(classroomId);
             setVenues(venues);
         } catch {
             setStatus(Status.Error);
         }
-    }, [classroom]);
+    }, [classroomId]);
 
     useEffect(() => {
-        fetchPrivileges();
-        fetchClassroomDetails();
-        fetchVenues();
-    }, []);
+        fetchPrivilegesAndData();
+    }, [fetchPrivilegesAndData]);
+
+    useEffect(() => {
+        classroom && setStatus(Status.Done);
+    }, [classroom]);
 
     const removeVenue = async (venue: Venue) => {
-        return null;
+        try {
+            await classroomsApi.deleteVenue(classroomId, venue.Id);
+        } catch {
+            toast({
+                title: "Could not delete venue",
+                description: "It is most likely still being used by a lesson.",
+                status: "error",
+                isClosable: true,
+            });
+        }
+        await fetchVenues();
     };
 
     const closeVenueModal = () => setCreateVenueModalOpen(false);
@@ -77,7 +119,8 @@ const ClassroomSettings = (): React.ReactElement => {
                 isOpen={createVenueModalOpen}
 
                 onClose={closeVenueModal}
-                onVenueCreated={fetchVenues}/>
+                onVenueCreated={fetchVenues}
+            />
             <AppNavBar breadcrumbs={[{ name: classroom.Name, path: `/app/classrooms/${classroom.Id}` }, {
                 name: "Settings",
                 path: "#"
@@ -111,19 +154,34 @@ const ClassroomSettings = (): React.ReactElement => {
                                         <Tbody>
                                             {venues.map((venue, idx) => (
                                                 <Tr key={idx.toString()}>
-                                                    <Th>{venue.Id}</Th>
-                                                    <Th>{venue.Name}</Th>
-                                                    <Th>
-                                                        <Button colorScheme={"red"}
-                                                            onClick={() => removeVenue(venue)}>
-                                                            Remove
-                                                        </Button>
-                                                    </Th>
+                                                    <Td>{venue.Id}</Td>
+                                                    <Td>{venue.Name}</Td>
+                                                    <Td>
+                                                        <Popover>
+                                                            <PopoverTrigger>
+                                                                <Button colorScheme={"red"}>Remove</Button>
+                                                            </PopoverTrigger>
+                                                            <PopoverContent>
+                                                                <PopoverArrow/>
+                                                                <PopoverCloseButton/>
+                                                                <PopoverHeader>Confirmation!</PopoverHeader>
+                                                                <PopoverBody>
+                                                                    Are you sure you want to remove this venue? All
+                                                                    associated lessons using this venue will no longer
+                                                                    have a venue.
+                                                                </PopoverBody>
+                                                                <PopoverFooter>
+                                                                    <Button colorScheme={"red"}
+                                                                        onClick={async () => await removeVenue(venue)}>Confirm</Button>
+                                                                </PopoverFooter>
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    </Td>
                                                 </Tr>
                                             ))}
                                         </Tbody>
                                     </Table>
-                                    <Button onClick={createVenue}>Create new venue</Button>
+                                    <Button onClick={createVenue} mt={2}>Create new venue</Button>
                                 </Box>
                             </Box>
                         </Flex>

@@ -226,7 +226,47 @@ namespace Simp.Controllers
                 return BadRequest();
             }
         }
+        
+        [HttpGet("{lessonId}/Venue")]
+        [ServiceFilter(typeof(AddUserDataServiceFilter))]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetVenue(
+            [FromRoute] string classroomId,
+            [FromRoute] string lessonId
+        )
+        {
+            var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
+            Debug.Assert(user != null, nameof(user) + " != null");
 
+            var validClassroomId = Guid.TryParse(classroomId, out var classroomGuid);
+            if (!validClassroomId) return BadRequest();
+
+            var validLessonId = Guid.TryParse(lessonId, out var lessonGuid);
+            if (!validLessonId) return BadRequest();
+
+            try
+            {
+                var classroom = await _classroomService.FindAsync(classroomGuid);
+                var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsInClassroom");
+
+                if (!authorization.Succeeded) return Forbid();
+
+                var lesson = await _lessonService.FindAsync(lessonGuid);
+                await _lessonService.LoadVenueAsync(lesson);
+
+                if (lesson.Venue is null)
+                {
+                    return Ok();
+                }
+
+                return Ok(lesson.Venue.ToDto());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest();
+            }
+        }
+        
         [HttpPost]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<LessonDto>> CreateLesson(

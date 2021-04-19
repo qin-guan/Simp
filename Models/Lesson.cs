@@ -14,6 +14,7 @@ namespace Simp.Models
         public Uri MeetingUri { get; set; }
         
         public Classroom Classroom { get; set; }
+        public Venue Venue { get; set; }
         public ICollection<ApplicationUser> Teachers { get; set; }
         public ICollection<ApplicationUser> Attendees { get; set; }
     }

@@ -18,15 +18,19 @@ import {
     FormHelperText,
     Textarea,
     HStack,
-    useToast
+    Select,
+    useToast, 
+    Alert
 } from "@chakra-ui/react";
 
 import lessonsApi from "../../api/http/lessons";
 import { useMemo, useRef, useState } from "react";
 import LessonType from "../../models/LessonType";
+import Venue from "../../models/Venue";
 
 export interface CreateLessonModalProps {
     classroomId: string;
+    venues: Venue[];
     isOpen: boolean;
 
     onClose: () => void;
@@ -34,7 +38,7 @@ export interface CreateLessonModalProps {
 }
 
 const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement => {
-    const { isOpen, onClose, onCreate, classroomId } = props;
+    const { isOpen, venues, onClose, onCreate, classroomId } = props;
 
     const [lessonName, setLessonName] = useState("");
     const [lessonDescription, setLessonDescription] = useState("");
@@ -42,21 +46,22 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
     const [endDate, setEndDate] = useState("");
     const [meetingUri, setMeetingUri] = useState("");
     const [lessonType, setLessonType] = useState<string>(LessonType.InPerson);
-    
+    const [venue, setVenue] = useState("");
+
     const [isCreatingLesson, setIsCreatingLesson] = useState(false);
 
     const initialRef = useRef(null);
     const toast = useToast();
-    
+
     const isCreateButtonDisabled = useMemo(() => {
         return !(lessonName && !isNaN(Date.parse(startDate)) && !isNaN(Date.parse(endDate)));
     }, [lessonName, startDate, endDate]);
 
     const createLesson = async () => {
         setIsCreatingLesson(true);
-        
+
         try {
-            await lessonsApi.create(classroomId, {
+            const lesson = await lessonsApi.create(classroomId, {
                 Id: "",
                 Name: lessonName,
                 Description: lessonDescription,
@@ -66,6 +71,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                 MeetingUri: meetingUri,
                 Teachers: [],
             });
+            await lessonsApi.addVenue(classroomId, lesson.Id, venue);
 
             setLessonName("");
             setLessonDescription("");
@@ -103,8 +109,13 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
     const onStartDateChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setStartDate(event.currentTarget.value);
     };
+    
     const onEndDateChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
         setEndDate(event.currentTarget.value);
+    };
+    
+    const onVenueSelected = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        setVenue(event.currentTarget.value);
     };
 
     return (
@@ -146,6 +157,14 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                                 value={lessonDescription}
                                 onChange={onLessonDescriptionChanged}
                             />
+                        </FormControl>
+                        <FormControl>
+                            <FormLabel>Venue</FormLabel>
+                            <Select placeholder="Select a venue" onChange={onVenueSelected}>
+                                {venues.map((venue, idx) => (
+                                    <option key={idx.toString()} value={venue.Id}>{venue.Name}</option>
+                                ))}
+                            </Select>
                         </FormControl>
                         <HStack w={"full"} spacing={3}>
                             <FormControl>

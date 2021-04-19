@@ -38,11 +38,13 @@ import Status from "../../models/Status";
 import CreateLessonModal from "../../components/app/CreateLessonModal";
 import AppNavBar from "../../components/app/AppNavBar";
 import User from "../../models/User";
+import Venue from "../../models/Venue";
 
 const Classroom = (): React.ReactElement | null => {
     const { classroomId } = useParams<{ classroomId: string }>();
 
     const [classroom, setClassroom] = useState<ClassroomInstance>({ Id: "", Name: "" });
+    const [venues, setVenues] = useState<Venue[]>([]);
     const [isPrivileged, setIsPrivileged] = useState(false);
     const [joinCode, setJoinCode] = useState("");
     const [classroomUsers, setClassroomUsers] = useState<User[]>([]);
@@ -88,11 +90,19 @@ const Classroom = (): React.ReactElement | null => {
         }
     }, []);
     
+    const fetchVenues = useCallback(async () => {
+        try {
+            setVenues(await classroomsApi.getVenues(classroomId));
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, [classroomId]);
 
     useEffect(() => {
         fetchClassroomAndPrivileges();
         fetchProfile();
         fetchLessons();
+        fetchVenues();
     }, [fetchClassroomAndPrivileges, fetchProfile, fetchLessons]);
     
     useEffect(() => {
@@ -109,6 +119,7 @@ const Classroom = (): React.ReactElement | null => {
             <AppNavBar breadcrumbs={[{ name: classroom.Name, path: "#" }]}/>
             <CreateLessonModal
                 classroomId={classroomId}
+                venues={venues}
 
                 isOpen={isCreateLessonModalOpen}
 

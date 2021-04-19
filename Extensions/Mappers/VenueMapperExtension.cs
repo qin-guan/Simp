@@ -8,7 +8,7 @@ namespace Simp.Extensions.Mappers
     {
         public static VenueDto ToDto(this Venue venue)
         {
-            return new VenueDto
+            return new()
             {
                 Id = venue.Id.ToString(),
                 Name = venue.Name

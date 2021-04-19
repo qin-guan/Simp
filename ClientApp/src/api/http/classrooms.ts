@@ -36,8 +36,11 @@ export const getUsers = async (classroomId: string): Promise<User[]> => {
 };
 
 export const getVenues = async(classroomId: string): Promise<Venue[]> => {
-    console.log(classroomId);
     return await apiClient.get(`Classrooms/${classroomId}/Venues`).json<Venue[]>();
+};
+
+export const deleteVenue = async (classroomId: string, venueId: string): Promise<boolean> => {
+    return await apiClient.delete(`Classrooms/${classroomId}/Venues/${venueId}`).json<boolean>();
 };
 
 const classrooms = {
@@ -49,7 +52,8 @@ const classrooms = {
     isPrivileged,
     getJoinCode,
     getUsers,
-    getVenues
+    getVenues,
+    deleteVenue
 };
 
 export default classrooms;

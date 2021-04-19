@@ -37,6 +37,12 @@ namespace Simp.Services
             await _dbContext.Entry(lesson).Collection(l => l.Teachers).LoadAsync();
             return lesson;
         }
+
+        public async Task<Venue> LoadVenueAsync(Lesson lesson)
+        {
+            await _dbContext.Entry(lesson).Reference(v => v.Venue).LoadAsync();
+            return lesson.Venue;
+        }
         public async Task<Lesson> CreateAsync(Lesson lesson)
         {
             var newLesson = await _dbContext.Lessons.AddAsync(lesson);
@@ -48,6 +54,13 @@ namespace Simp.Services
         {
             await _dbContext.Entry(lesson).Collection(l => l.Teachers).LoadAsync();
             lesson.Teachers.Add(user);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddVenueAsync(Lesson lesson, Venue venue)
+        {
+            await _dbContext.Entry(venue).Collection(v => v.Lessons).LoadAsync();
+            venue.Lessons.Add(lesson);
             await _dbContext.SaveChangesAsync();
         }
 

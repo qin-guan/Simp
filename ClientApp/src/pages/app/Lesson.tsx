@@ -13,7 +13,7 @@ import {
     Wrap,
     Avatar,
     WrapItem,
-    IconButton
+    IconButton, Stat, StatLabel, StatNumber, StatHelpText
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
 
@@ -33,6 +33,7 @@ import authorizationService from "../../oidc/AuthorizationService";
 
 import User from "../../models/User";
 import LessonType from "../../models/LessonType";
+import Venue from "../../models/Venue";
 
 const Lesson = (): React.ReactElement => {
     const { classroomId, lessonId } = useParams<{ classroomId: string; lessonId: string }>();
@@ -40,6 +41,7 @@ const Lesson = (): React.ReactElement => {
     const [isTeacher, setIsTeacher] = useState(false);
     const [attendees, setAttendees] = useState<User[]>([]);
     const [attendance, setAttendance] = useState(false);
+    const [venue, setVenue] = useState<Venue>();
     const [markAttendanceModalOpen, setMarkAttendanceModalOpen] = useState(false);
     const [classroom, setClassroom] = useState<Classroom>({ Id: "", Name: "" });
     const [lesson, setLesson] = useState<LessonInstance>({
@@ -99,10 +101,22 @@ const Lesson = (): React.ReactElement => {
         }
     }, [classroomId, lessonId]);
 
+    const fetchVenue = useCallback(async () => {
+        try {
+            const venue = await lessonsApi.getVenue(classroomId, lessonId);
+            if (venue && venue.Id) {
+                setVenue(venue);
+            }
+        } catch {
+            setStatus(Status.Error);
+        }
+    }, [classroomId, lessonId]);
+
     useEffect(() => {
         fetchClassroom();
         fetchLesson();
         fetchAttendance();
+        fetchVenue();
         setStatus(Status.Done);
     }, [fetchClassroom, fetchLesson, fetchAttendance]);
 
@@ -161,7 +175,19 @@ const Lesson = (): React.ReactElement => {
                         <Flex style={{ flex: 1 }}>
                             <Box>
                                 <Heading>{lesson.Name}</Heading>
-                                <Text>{lesson.Description}</Text>
+                                {lesson.Description ? (
+                                    <Text>{lesson.Description}</Text>
+                                ) : (
+                                    <Text color={"gray"}><i>The classroom owner did not provide a description</i></Text>
+                                )}
+                                {venue && (
+                                    <Box borderWidth={1} borderRadius={"lg"} p={4} mt={3}>
+                                        <Stat>
+                                            <StatLabel>Lesson venue</StatLabel>
+                                            <StatNumber>{venue.Name}</StatNumber>
+                                        </Stat>
+                                    </Box>
+                                )}
                             </Box>
                             <Spacer/>
                             <Button onClick={navigateToMeeting} colorScheme={"teal"} size={"lg"}>

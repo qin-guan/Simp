@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Simp.Models
 {
@@ -7,5 +8,6 @@ namespace Simp.Models
         public Guid Id { get; set; }
         public string Name { get; set; }
         public Classroom Classroom { get; set; }
+        public List<Lesson> Lessons { get; set; }
     }
 }

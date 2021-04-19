@@ -22,6 +22,12 @@ namespace Simp.Services
             return await _dbContext.Classrooms.FindAsync(guid);
         }
 
+        // This includes Lessons as there is no VenueService, and VenueController checks if the Venue is still attached to any Lessons
+        public async Task<Venue> FindVenueAsync(Guid guid)
+        {
+            return await _dbContext.Venues.Include(v => v.Lessons).Where(v => v.Id == guid).SingleOrDefaultAsync();
+        }
+
         public async Task<IEnumerable<Classroom>> FindByJoinCodeAsync(int code)
         {
             return await _dbContext.Classrooms.Where(c => c.JoinCode == code).ToListAsync();
@@ -61,7 +67,7 @@ namespace Simp.Services
                 classroom.JoinCode = new Random().Next(10000, 99999);
                 return await CreateAsync(classroom);
             }
-            
+
             var newClassroom = await _dbContext.Classrooms.AddAsync(classroom);
             await _dbContext.SaveChangesAsync();
 
@@ -75,15 +81,15 @@ namespace Simp.Services
             return newVenue.Entity;
         }
 
-        public async Task DeleteAsync(Guid guid)
-        {
-            var classroom = await _dbContext.Classrooms.FindAsync(guid);
-            await DeleteAsync(classroom);
-        }
-
         public async Task DeleteAsync(Classroom classroom)
         {
             _dbContext.Classrooms.Remove(classroom);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteVenueAsync(Venue venue)
+        {
+            _dbContext.Venues.Remove(venue);
             await _dbContext.SaveChangesAsync();
         }
 
