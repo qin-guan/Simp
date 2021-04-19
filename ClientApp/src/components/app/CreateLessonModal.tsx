@@ -71,7 +71,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
                 MeetingUri: meetingUri,
                 Teachers: [],
             });
-            await lessonsApi.addVenue(classroomId, lesson.Id, venue);
+            venue && await lessonsApi.addVenue(classroomId, lesson.Id, venue);
 
             setLessonName("");
             setLessonDescription("");

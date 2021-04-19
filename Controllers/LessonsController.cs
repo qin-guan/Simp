@@ -253,12 +253,7 @@ namespace Simp.Controllers
                 var lesson = await _lessonService.FindAsync(lessonGuid);
                 await _lessonService.LoadVenueAsync(lesson);
 
-                if (lesson.Venue is null)
-                {
-                    return Ok();
-                }
-
-                return Ok(lesson.Venue.ToDto());
+                return Ok(lesson.Venue is null ? new Venue().ToDto() : lesson.Venue.ToDto());
             }
             catch (Exception e)
             {

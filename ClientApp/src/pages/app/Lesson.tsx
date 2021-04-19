@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { useParams } from "react-router";
 import {
@@ -104,13 +104,26 @@ const Lesson = (): React.ReactElement => {
     const fetchVenue = useCallback(async () => {
         try {
             const venue = await lessonsApi.getVenue(classroomId, lessonId);
-            if (venue && venue.Id) {
+            if (venue) {
                 setVenue(venue);
             }
-        } catch {
+        } catch (e) {
+            console.error(e);
             setStatus(Status.Error);
         }
     }, [classroomId, lessonId]);
+    
+    const startDate = useMemo(() => {
+        const date = new Date();
+        date.setUTCMilliseconds(lesson.StartDate);
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    }, [lesson]);
+    
+    const endDate = useMemo(() => {
+        const date = new Date();
+        date.setUTCMilliseconds(lesson.EndDate);
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+    }, [lesson]);
 
     useEffect(() => {
         fetchClassroom();
@@ -188,6 +201,16 @@ const Lesson = (): React.ReactElement => {
                                         </Stat>
                                     </Box>
                                 )}
+                                <Box borderWidth={1} borderRadius={"lg"} p={4} mt={3}>
+                                    <Stat>
+                                        <StatLabel>Lesson start</StatLabel>
+                                        <StatNumber>{startDate}</StatNumber>
+                                    </Stat>
+                                    <Stat>
+                                        <StatLabel>Lesson end</StatLabel>
+                                        <StatNumber>{endDate}</StatNumber>
+                                    </Stat>
+                                </Box>
                             </Box>
                             <Spacer/>
                             <Button onClick={navigateToMeeting} colorScheme={"teal"} size={"lg"}>

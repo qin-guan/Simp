@@ -8,7 +8,9 @@ export const get = async (classroomId: string): Promise<Lesson[]> => {
 };
 
 export const getVenue = async(classroomId: string, lessonId: string): Promise<Venue | undefined> => {
-    return await apiClient.get(`Lessons/${classroomId}/${lessonId}/Venue`).json<Venue | undefined>();
+    const venue = await apiClient.get(`Lessons/${classroomId}/${lessonId}/Venue`).json<Venue>();
+    if (!venue.Name) return;
+    return venue;
 };
 
 export const find = async (classroomId: string, lessonId: string): Promise<Lesson> => {
