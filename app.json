@@ -1,7 +1,7 @@
 {
   "buildpacks": [
     {
-      "url": "jincod/dotnetcore"
+      "url": "https://github.com/jincod/dotnetcore-buildpack"
     }
   ]
 }
