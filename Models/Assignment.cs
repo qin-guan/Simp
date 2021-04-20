@@ -9,6 +9,7 @@ namespace Simp.Models
         public string Name { get; set; }
         public string Description { get; set; }
         public DateTime DueDate { get; set; }
+        public int Points { get; set; }
         public Lesson Lesson { get; set; }
         public ApplicationUser Creator { get; set; }
         public ICollection<ApplicationUser> CompletedUsers { get; set; }

@@ -64,6 +64,13 @@ namespace Simp.Services
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task AddAssignmentAsync(Lesson lesson, Assignment assignment)
+        {
+            await _dbContext.Entry(lesson).Collection(l => l.Assignments).LoadAsync();
+            lesson.Assignments.Add(assignment);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<Lesson> LoadAttendeesAsync(Lesson lesson)
         {
             await _dbContext.Entry(lesson).Collection(l => l.Attendees).LoadAsync();

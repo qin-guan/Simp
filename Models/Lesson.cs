@@ -15,6 +15,7 @@ namespace Simp.Models
         
         public Classroom Classroom { get; set; }
         public Venue Venue { get; set; }
+        public List<Assignment> Assignments { get; set; }
         public ICollection<ApplicationUser> Teachers { get; set; }
         public ICollection<ApplicationUser> Attendees { get; set; }
     }

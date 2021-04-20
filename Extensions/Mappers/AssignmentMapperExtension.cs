@@ -7,21 +7,22 @@ namespace Simp.Extensions.Mappers
 {
     public static class AssignmentMapperExtension
     {
-        public static AssignmentDto ToDto(Assignment assignment)
+        public static AssignmentDto ToDto(this Assignment assignment)
         {
             return new()
             {
                 Id = assignment.ToString(),
                 Name = assignment.Name,
                 Description = assignment.Description,
-                DueDate = assignment.DueDate.ToEpochTime()
+                DueDate = assignment.DueDate.ToEpochTime(),
+                Points = assignment.Points
             };
         }
 
-        public static Assignment ToAssignment(AssignmentDto assignmentDto)
+        public static Assignment ToAssignment(this AssignmentDto assignmentDto)
         {
             var validId = Guid.TryParse(assignmentDto.Id, out var guid);
-            if (!validId) throw new Exception("Invalid Assignment.Id");
+            if (!validId && !string.IsNullOrWhiteSpace(assignmentDto.Id)) throw new Exception("Invalid Assignment.Id");
 
             return new Assignment
             {
@@ -29,6 +30,7 @@ namespace Simp.Extensions.Mappers
                 Name = assignmentDto.Name,
                 Description = assignmentDto.Description,
                 DueDate = DateTimeOffset.FromUnixTimeMilliseconds(assignmentDto.DueDate).DateTime,
+                Points = assignmentDto.Points
             };
         }
     }

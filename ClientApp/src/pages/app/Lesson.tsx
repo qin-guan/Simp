@@ -13,13 +13,19 @@ import {
     Wrap,
     Avatar,
     WrapItem,
-    IconButton, Stat, StatLabel, StatNumber, StatHelpText
+    IconButton,
+    Stat,
+    StatLabel,
+    StatNumber,
+    VStack
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
+import { fromUnixTime, format } from "date-fns";
 
 import Classroom from "../../models/Classroom";
 import LessonInstance from "../../models/Lesson";
 import Status from "../../models/Status";
+import Assignment from "../../models/Assignment";
 
 import classroomsApi from "../../api/http/classrooms";
 import lessonsApi from "../../api/http/lessons";
@@ -34,6 +40,7 @@ import authorizationService from "../../oidc/AuthorizationService";
 import User from "../../models/User";
 import LessonType from "../../models/LessonType";
 import Venue from "../../models/Venue";
+import CreateAssignmentModal from "../../components/app/lesson/CreateAssignmentModal";
 
 const Lesson = (): React.ReactElement => {
     const { classroomId, lessonId } = useParams<{ classroomId: string; lessonId: string }>();
@@ -41,6 +48,7 @@ const Lesson = (): React.ReactElement => {
     const [isTeacher, setIsTeacher] = useState(false);
     const [attendees, setAttendees] = useState<User[]>([]);
     const [attendance, setAttendance] = useState(false);
+    const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [venue, setVenue] = useState<Venue>();
     const [markAttendanceModalOpen, setMarkAttendanceModalOpen] = useState(false);
     const [classroom, setClassroom] = useState<Classroom>({ Id: "", Name: "" });
@@ -57,6 +65,7 @@ const Lesson = (): React.ReactElement => {
 
     const [status, setStatus] = useState(Status.Loading);
     const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
+    const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
     const [attendeeListOpen, setAttendeeListOpen] = useState(false);
 
     const fetchAttendance = useCallback(async () => {
@@ -112,28 +121,31 @@ const Lesson = (): React.ReactElement => {
             setStatus(Status.Error);
         }
     }, [classroomId, lessonId]);
-    
+
     const fetchAssignments = useCallback(async () => {
         try {
             const assignments = await lessonsApi.getAssignments(classroomId, lessonId);
-            console.log(assignments);
+            setAssignments(assignments);
         } catch (e) {
             console.error(e);
             setStatus(Status.Error);
         }
     }, [classroomId, lessonId]);
-    
+
     const startDate = useMemo(() => {
-        const date = new Date();
-        date.setUTCMilliseconds(lesson.StartDate);
-        return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        const date = fromUnixTime(lesson.StartDate);
+        return format(date, "dd/MM/yyyy HH:mm");
+    }, [lesson]);
+
+    const endDate = useMemo(() => {
+        const date = fromUnixTime(lesson.EndDate);
+        return format(date, "dd/MM/yyyy HH:mm");
     }, [lesson]);
     
-    const endDate = useMemo(() => {
-        const date = new Date();
-        date.setUTCMilliseconds(lesson.EndDate);
-        return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-    }, [lesson]);
+    const dueDate = useCallback((input: number) => {
+        const date = fromUnixTime(input);
+        return format(date, "dd/MM/yyyy");
+    }, []);
 
     useEffect(() => {
         fetchClassroom();
@@ -152,6 +164,10 @@ const Lesson = (): React.ReactElement => {
     const onMarkAttendanceModalClosed = () => setMarkAttendanceModalOpen(false);
     const onAttendanceMarked = async () => await fetchAttendance();
 
+    const openCreateAssignmentModal = () => setAssignmentModalOpen(true);
+    const onCreateAssignmentModalClosed = () => setAssignmentModalOpen(false);
+    const onAssignmentCreated = async () => await fetchAssignments();
+
     const closeAttendeeList = () => setAttendeeListOpen(false);
     const openAttendeeList = () => setAttendeeListOpen(true);
 
@@ -164,6 +180,14 @@ const Lesson = (): React.ReactElement => {
                 isOpen={attendanceModalOpen}
                 onClose={onAttendanceModalClosed}
             />}
+            <CreateAssignmentModal
+                classroom={classroom}
+                lesson={lesson}
+
+                isOpen={assignmentModalOpen}
+                onClose={onCreateAssignmentModalClosed}
+                onCreate={onAssignmentCreated}
+            />
             <MarkAttendanceCodeModal
                 classroom={classroom}
                 lesson={lesson}
@@ -196,49 +220,84 @@ const Lesson = (): React.ReactElement => {
                     ),
                     [Status.Error]: <Heading size={"lg"} alignSelf={"center"}>An unknown error occurred</Heading>,
                     [Status.Done]: (
-                        <Flex style={{ flex: 1 }}>
-                            <Box>
-                                <Heading>{lesson.Name}</Heading>
-                                {lesson.Description ? (
-                                    <Text>{lesson.Description}</Text>
-                                ) : (
-                                    <Text color={"gray"}><i>The classroom owner did not provide a description</i></Text>
-                                )}
-                                {venue && (
+                        <Wrap style={{ flex: 1 }}>
+                            <WrapItem>
+                                <Box>
+                                    <Heading>{lesson.Name}</Heading>
+                                    {lesson.Description ? (
+                                        <Text>{lesson.Description}</Text>
+                                    ) : (
+                                        <Text color={"gray"}><i>There is no description for this class</i></Text>
+                                    )}
+                                    {venue && (
+                                        <Box borderWidth={1} borderRadius={"lg"} p={4} mt={3}>
+                                            <Stat>
+                                                <StatLabel>Lesson venue</StatLabel>
+                                                <StatNumber>{venue.Name}</StatNumber>
+                                            </Stat>
+                                        </Box>
+                                    )}
                                     <Box borderWidth={1} borderRadius={"lg"} p={4} mt={3}>
                                         <Stat>
-                                            <StatLabel>Lesson venue</StatLabel>
-                                            <StatNumber>{venue.Name}</StatNumber>
+                                            <StatLabel>Lesson start</StatLabel>
+                                            <StatNumber>{startDate}</StatNumber>
+                                        </Stat>
+                                        <Stat>
+                                            <StatLabel>Lesson end</StatLabel>
+                                            <StatNumber>{endDate}</StatNumber>
                                         </Stat>
                                     </Box>
-                                )}
-                                <Box borderWidth={1} borderRadius={"lg"} p={4} mt={3}>
-                                    <Stat>
-                                        <StatLabel>Lesson start</StatLabel>
-                                        <StatNumber>{startDate}</StatNumber>
-                                    </Stat>
-                                    <Stat>
-                                        <StatLabel>Lesson end</StatLabel>
-                                        <StatNumber>{endDate}</StatNumber>
-                                    </Stat>
+                                    <Box mt={3}>
+                                        <Button onClick={navigateToMeeting} colorScheme={"teal"} size={"lg"}>
+                                            Go to meeting
+                                        </Button>
+                                        {!attendance && (
+                                            <Button onClick={openMarkAttendanceModal} colorScheme={"red"} size={"lg"}>
+                                                Mark my attendance
+                                            </Button>
+                                        )}
+                                    </Box>
                                 </Box>
-                            </Box>
-                            <Spacer/>
-                            <Button onClick={navigateToMeeting} colorScheme={"teal"} size={"lg"}>
-                                Go to meeting
-                            </Button>
-                            {!attendance && (
-                                <Button onClick={openMarkAttendanceModal} colorScheme={"red"} size={"lg"} ml={3}>
-                                    Mark my attendance
-                                </Button>
-                            )}
-                        </Flex>
+                            </WrapItem>
+                            <WrapItem style={{ flex: 1 }} display={"flex"}>
+                                <Box style={{ flex: 1 }}>
+                                    <Heading mb={3}>Assignments</Heading>
+                                    {assignments.map((assignment, idx) => (
+                                        <Box key={idx.toString()} borderWidth={1} borderRadius={"lg"} p={4}
+                                            bg={"teal.800"} mt={3}>
+                                            <Wrap justify={"space-between"}>
+                                                <WrapItem>
+                                                    <Box>
+                                                        <Heading size={"md"}>{assignment.Name}</Heading>
+                                                        {assignment.Description ? (
+                                                            <Text>{assignment.Description}</Text>
+                                                        ) : (
+                                                            <Text color={"gray"}><i>There is no description for this
+                                                                assignment</i></Text>
+                                                        )}
+                                                    </Box>
+                                                </WrapItem>
+                                                <WrapItem>
+                                                    <Stat>
+                                                        <StatLabel>Due date</StatLabel>
+                                                        <StatNumber>{dueDate(assignment.DueDate)}</StatNumber>
+                                                    </Stat>
+                                                </WrapItem>
+                                            </Wrap>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            </WrapItem>
+                        </Wrap>
                     )
                 }[status]}
                 {isTeacher && (
                     <Box borderWidth={1} borderRadius={"lg"} p={4} ml={5}>
-                        <Button colorScheme={"blue"} onClick={openAttendanceModal}>Show
-                            attendance code</Button>
+                        <VStack spacing={"2"} align={"flex-end"}>
+                            <Button colorScheme={"blue"} onClick={openAttendanceModal}>Show
+                                attendance code</Button>
+                            <Button colorScheme={"teal"} onClick={openCreateAssignmentModal}>Create assignment</Button>
+                        </VStack>
                         <Flex mt={3} mb={2} alignItems={"center"}>
                             <Heading size={"md"}>Attendees ({attendees.length})</Heading>
                             <Spacer/>

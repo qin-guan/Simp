@@ -8,6 +8,7 @@ namespace Simp.Models
 {
     public class ApplicationUser : IdentityUser<Guid>
     {
+        public int Points { get; set; }
         public List<Assignment> CreatedAssignments { get; set; }
         public ICollection<Assignment> CompletedAssignments { get; set; }
         public ICollection<Classroom> Classrooms { get; set; }

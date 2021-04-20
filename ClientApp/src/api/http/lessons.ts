@@ -8,7 +8,7 @@ export const get = async (classroomId: string): Promise<Lesson[]> => {
     return await apiClient.get(`Classrooms/${classroomId}/Lessons/`).json<Lesson[]>();
 };
 
-export const getVenue = async(classroomId: string, lessonId: string): Promise<Venue | undefined> => {
+export const getVenue = async (classroomId: string, lessonId: string): Promise<Venue | undefined> => {
     const venue = await apiClient.get(`Classrooms/${classroomId}/Lessons/${lessonId}/Venue`).json<Venue>();
     if (!venue.Name) return;
     return venue;
@@ -28,6 +28,10 @@ export const addVenue = async (classroomId: string, lessonId: string, venueId: s
 
 export const createAttendance = async (classroomId: string, lessonId: string, code: number): Promise<boolean> => {
     return await apiClient.post(`Classrooms/${classroomId}/Lessons/${lessonId}/Attendance`, { json: code }).json<boolean>();
+};
+
+export const createAssignment = async (classroomId: string, lessonId: string, assignment: Assignment): Promise<Assignment> => {
+    return await apiClient.post(`Classrooms/${classroomId}/Lessons/${lessonId}/Assignments`, { json: assignment }).json<Assignment>();
 };
 
 export const getAttendanceCode = async (classroomId: string, lessonId: string): Promise<number> => {
@@ -57,6 +61,7 @@ const lessons = {
     create,
     addVenue,
     createAttendance,
+    createAssignment,
     getAttendanceCode,
     getAttendees,
     getAttendance,

@@ -3,6 +3,7 @@ export interface Assignment {
     Name: string;
     Description: string;
     DueDate: number;
+    Points: number;
 }
 
 export default Assignment;
