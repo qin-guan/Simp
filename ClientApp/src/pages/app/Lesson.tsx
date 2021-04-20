@@ -113,6 +113,16 @@ const Lesson = (): React.ReactElement => {
         }
     }, [classroomId, lessonId]);
     
+    const fetchAssignments = useCallback(async () => {
+        try {
+            const assignments = await lessonsApi.getAssignments(classroomId, lessonId);
+            console.log(assignments);
+        } catch (e) {
+            console.error(e);
+            setStatus(Status.Error);
+        }
+    }, [classroomId, lessonId]);
+    
     const startDate = useMemo(() => {
         const date = new Date();
         date.setUTCMilliseconds(lesson.StartDate);
@@ -130,6 +140,7 @@ const Lesson = (): React.ReactElement => {
         fetchLesson();
         fetchAttendance();
         fetchVenue();
+        fetchAssignments();
         setStatus(Status.Done);
     }, [fetchClassroom, fetchLesson, fetchAttendance]);
 

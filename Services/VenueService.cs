@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Simp.Data;
 using Simp.Models;
 
@@ -11,6 +12,11 @@ namespace Simp.Services
         public VenueService(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+
+        public async Task<Venue> FindAsync(Guid guid)
+        {
+            return await _dbContext.Venues.FindAsync(guid);
         }
 
         public async Task<Venue> CreateAsync(Venue venue)

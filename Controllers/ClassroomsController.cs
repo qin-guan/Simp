@@ -52,22 +52,19 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpGet("{classroomId}")]
+        [HttpGet("{classroomId:guid}")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult<ClassroomDto>> GetClassroom([FromRoute] string classroomId)
+        public async Task<ActionResult<ClassroomDto>> GetClassroom([FromRoute] Guid classroomId)
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
 
-            var validId = Guid.TryParse(classroomId, out var guid);
-            if (!validId) return BadRequest();
-
             try
             {
                 var classrooms = (await _classroomService.FindByUserAsync(user)).ToList();
-                if (classrooms.All(c => c.Id != guid)) return Forbid();
+                if (classrooms.All(c => c.Id != classroomId)) return Forbid();
 
-                return Ok(classrooms.SingleOrDefault(c => c.Id == guid).ToDto());
+                return Ok(classrooms.SingleOrDefault(c => c.Id == classroomId).ToDto());
             }
             catch (Exception e)
             {
@@ -76,19 +73,16 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpGet("{classroomId}/Users")]
+        [HttpGet("{classroomId:guid}/Users")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetClassroomUsers([FromRoute] string classroomId)
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetClassroomUsers([FromRoute] Guid classroomId)
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
 
-            var validId = Guid.TryParse(classroomId, out var guid);
-            if (!validId) return BadRequest();
-
             try
             {
-                var classroom = await _classroomService.FindAsync(guid);
+                var classroom = await _classroomService.FindAsync(classroomId);
 
                 var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
                 if (!authorization.Succeeded) return Forbid();
@@ -104,19 +98,16 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpGet("{classroomId}/Privileged")]
+        [HttpGet("{classroomId:guid}/Privileged")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult<bool>> GetIsClassroomOwner([FromRoute] string classroomId)
+        public async Task<ActionResult<bool>> GetIsClassroomOwner([FromRoute] Guid classroomId)
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
 
-            var validId = Guid.TryParse(classroomId, out var guid);
-            if (!validId) return BadRequest();
-
             try
             {
-                var classroom = await _classroomService.FindAsync(guid);
+                var classroom = await _classroomService.FindAsync(classroomId);
 
                 var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
                 return Ok(authorization.Succeeded);
@@ -128,19 +119,16 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpGet("{classroomId}/Code")]
+        [HttpGet("{classroomId:guid}/Code")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult<int>> GetClassroomJoinCode([FromRoute] string classroomId)
+        public async Task<ActionResult<int>> GetClassroomJoinCode([FromRoute] Guid classroomId)
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
 
-            var validId = Guid.TryParse(classroomId, out var guid);
-            if (!validId) return BadRequest();
-
             try
             {
-                var classroom = await _classroomService.FindAsync(guid);
+                var classroom = await _classroomService.FindAsync(classroomId);
 
                 var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
                 if (!authorization.Succeeded) return Forbid();
@@ -154,24 +142,22 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpGet("Join/{joinCode}")]
+        [HttpGet("Join/{joinCode:int}")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
-        public async Task<ActionResult<ClassroomDto>> JoinClassroom([FromRoute] string joinCode)
+        public async Task<ActionResult<ClassroomDto>> JoinClassroom([FromRoute] int joinCode)
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
 
-            var validCode = int.TryParse(joinCode, out var code);
-            if (!validCode) return BadRequest();
-            if (code.ToString().Length != 5) return BadRequest();
+            if (joinCode.ToString().Length != 5) return BadRequest();
 
             try
             {
                 var userClassrooms = await _classroomService.FindByUserAsync(user);
-                var userInClassroom = userClassrooms.Where(c => c.JoinCode == code).ToList();
+                var userInClassroom = userClassrooms.Where(c => c.JoinCode == joinCode).ToList();
                 if (userInClassroom.Any()) return Ok(userInClassroom.SingleOrDefault().ToDto());
 
-                var classrooms = (await _classroomService.FindByJoinCodeAsync(code)).ToList();
+                var classrooms = (await _classroomService.FindByJoinCodeAsync(joinCode)).ToList();
                 switch (classrooms.Count)
                 {
                     case 0:
@@ -218,21 +204,18 @@ namespace Simp.Controllers
             }
         }
 
-        [HttpDelete("{classroomId}")]
+        [HttpDelete("{classroomId:guid}")]
         [ServiceFilter(typeof(AddUserDataServiceFilter))]
         public async Task<ActionResult<bool>> DeleteClassroom(
-            [FromRoute] string classroomId
+            [FromRoute] Guid classroomId
         )
         {
             var user = (ApplicationUser) HttpContext.Items["ApplicationUser"];
             Debug.Assert(user != null, nameof(user) + " != null");
 
-            var validId = Guid.TryParse(classroomId, out var guid);
-            if (!validId) return BadRequest();
-
             try
             {
-                var classroom = await _classroomService.FindAsync(guid);
+                var classroom = await _classroomService.FindAsync(classroomId);
                 var authorization = await _authorizationService.AuthorizeAsync(User, classroom, "IsOwner");
                 if (!authorization.Succeeded) return Forbid();
                 

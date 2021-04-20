@@ -51,6 +51,7 @@ const AttendanceCodeModal = (props: AttendanceCodeModalProps): React.ReactElemen
     useEffect(() => {
         const timer = setInterval(fetchAttendeeCode, 1000);
         fetchAttendeeCode();
+        setStatus(Status.Done);
 
         return () => {
             clearInterval(timer);

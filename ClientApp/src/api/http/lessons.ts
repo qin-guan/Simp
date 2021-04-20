@@ -2,6 +2,7 @@
 import Lesson from "../../models/Lesson";
 import User from "../../models/User";
 import Venue from "../../models/Venue";
+import Assignment from "../../models/Assignment";
 
 export const get = async (classroomId: string): Promise<Lesson[]> => {
     return await apiClient.get(`Lessons/${classroomId}/`).json<Lesson[]>();
@@ -45,6 +46,10 @@ export const deleteAttendance = async (classroomId: string, lessonId: string, us
     await apiClient.delete(`Lessons/${classroomId}/${lessonId}/Attendance`, { json: userId });
 };
 
+export const getAssignments = async (classroomId: string, lessonId: string): Promise<Assignment[]> => {
+    return await apiClient.get(`Classrooms/${classroomId}/Lessons/${lessonId}/Assignments`).json<Assignment[]>();
+};
+
 const lessons = {
     get,
     getVenue,
@@ -55,7 +60,8 @@ const lessons = {
     getAttendanceCode,
     getAttendees,
     getAttendance,
-    deleteAttendance
+    deleteAttendance,
+    getAssignments
 };
 
 export default lessons;

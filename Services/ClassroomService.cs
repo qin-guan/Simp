@@ -22,12 +22,6 @@ namespace Simp.Services
             return await _dbContext.Classrooms.FindAsync(guid);
         }
 
-        // This includes Lessons as there is no VenueService, and VenueController checks if the Venue is still attached to any Lessons
-        public async Task<Venue> FindVenueAsync(Guid guid)
-        {
-            return await _dbContext.Venues.Include(v => v.Lessons).Where(v => v.Id == guid).SingleOrDefaultAsync();
-        }
-
         public async Task<IEnumerable<Classroom>> FindByJoinCodeAsync(int code)
         {
             return await _dbContext.Classrooms.Where(c => c.JoinCode == code).ToListAsync();
