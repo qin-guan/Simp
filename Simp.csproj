@@ -26,18 +26,8 @@
     <ItemGroup>
         <!-- Don't publish the SPA source files, but do show them in the project files list -->
         <Content Remove="$(SpaRoot)**" />
-        <Content Include="ClientApp\.eslintrc.json" />
         <None Remove="$(SpaRoot)**" />
         <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
-        <None Include="ClientApp\src\components\app\AttendanceCodeModal.tsx" />
-        <None Include="ClientApp\src\components\app\classroom\CreateVenueModal.ts" />
-        <None Include="ClientApp\src\components\app\JoinClassroomModal.tsx" />
-        <None Include="ClientApp\src\components\app\lesson\AttendeeLesson.tsx" />
-        <None Include="ClientApp\src\components\app\lesson\AttendeeListModal.tsx" />
-        <None Include="ClientApp\src\components\app\lesson\MarkAttendanceCodeModal.ts" />
-        <None Include="ClientApp\src\components\app\lesson\TeacherLesson.tsx" />
-        <None Include="ClientApp\src\models\Venue.ts" />
-        <None Include="ClientApp\src\pages\app\ClassroomDashboard.tsx" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
