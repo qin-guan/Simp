@@ -16,7 +16,7 @@ namespace Simp.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("[controller]/{classroomId:guid}")]
+    [Route("Classrooms/{classroomId:guid}/[controller]")]
     public class LessonsController : ControllerBase
     {
         private readonly LessonService _lessonService;
