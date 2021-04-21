@@ -24,6 +24,9 @@ namespace Simp.Extensions.Mappers
             var validId = Guid.TryParse(assignmentDto.Id, out var guid);
             if (!validId && !string.IsNullOrWhiteSpace(assignmentDto.Id)) throw new Exception("Invalid Assignment.Id");
 
+            if (assignmentDto.Points is > 100 or < 0)
+                throw new Exception("Invalid Assignment.Points");
+
             return new Assignment
             {
                 Id = guid,

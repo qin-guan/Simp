@@ -17,7 +17,7 @@ import {
     Stat,
     StatLabel,
     StatNumber,
-    VStack
+    VStack, HStack, Alert, AlertIcon, AlertTitle, AlertDescription
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
 import { fromUnixTime, format } from "date-fns";
@@ -41,6 +41,7 @@ import User from "../../models/User";
 import LessonType from "../../models/LessonType";
 import Venue from "../../models/Venue";
 import CreateAssignmentModal from "../../components/app/lesson/CreateAssignmentModal";
+import AssignmentCard from "../../components/app/lesson/AssignmentCard";
 
 const Lesson = (): React.ReactElement => {
     const { classroomId, lessonId } = useParams<{ classroomId: string; lessonId: string }>();
@@ -125,7 +126,8 @@ const Lesson = (): React.ReactElement => {
     const fetchAssignments = useCallback(async () => {
         try {
             const assignments = await lessonsApi.getAssignments(classroomId, lessonId);
-            setAssignments(assignments);
+            const sorted = assignments.sort((a, b) => b.DueDate - a.DueDate);
+            setAssignments(sorted);
         } catch (e) {
             console.error(e);
             setStatus(Status.Error);
@@ -141,11 +143,6 @@ const Lesson = (): React.ReactElement => {
         const date = fromUnixTime(lesson.EndDate);
         return format(date, "dd/MM/yyyy HH:mm");
     }, [lesson]);
-    
-    const dueDate = useCallback((input: number) => {
-        const date = fromUnixTime(input);
-        return format(date, "dd/MM/yyyy");
-    }, []);
 
     useEffect(() => {
         fetchClassroom();
@@ -262,29 +259,27 @@ const Lesson = (): React.ReactElement => {
                             <WrapItem style={{ flex: 1 }} display={"flex"}>
                                 <Box style={{ flex: 1 }}>
                                     <Heading mb={3}>Assignments</Heading>
+                                    {assignments.length === 0 && (
+                                        <Alert
+                                            status="success"
+                                            variant="subtle"
+                                            flexDirection="column"
+                                            alignItems="center"
+                                            justifyContent="center"
+                                            textAlign="center"
+                                            height="200px"
+                                        >
+                                            <AlertIcon boxSize="40px" mr={0}/>
+                                            <AlertTitle mt={4} mb={1} fontSize="lg">
+                                                No assignments!
+                                            </AlertTitle>
+                                            <AlertDescription maxWidth="sm">
+                                                Wow, you have no assignments! I wish I was this lucky as well...
+                                            </AlertDescription>
+                                        </Alert>
+                                    )}
                                     {assignments.map((assignment, idx) => (
-                                        <Box key={idx.toString()} borderWidth={1} borderRadius={"lg"} p={4}
-                                            bg={"teal.800"} mt={3}>
-                                            <Wrap justify={"space-between"}>
-                                                <WrapItem>
-                                                    <Box>
-                                                        <Heading size={"md"}>{assignment.Name}</Heading>
-                                                        {assignment.Description ? (
-                                                            <Text>{assignment.Description}</Text>
-                                                        ) : (
-                                                            <Text color={"gray"}><i>There is no description for this
-                                                                assignment</i></Text>
-                                                        )}
-                                                    </Box>
-                                                </WrapItem>
-                                                <WrapItem>
-                                                    <Stat>
-                                                        <StatLabel>Due date</StatLabel>
-                                                        <StatNumber>{dueDate(assignment.DueDate)}</StatNumber>
-                                                    </Stat>
-                                                </WrapItem>
-                                            </Wrap>
-                                        </Box>
+                                        <AssignmentCard assignment={assignment} key={idx.toString()}/>
                                     ))}
                                 </Box>
                             </WrapItem>

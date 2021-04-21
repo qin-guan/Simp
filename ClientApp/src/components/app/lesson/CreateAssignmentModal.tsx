@@ -120,14 +120,14 @@ const CreateAssignmentModal = (props: CreateAssignmentModalProps): React.ReactEl
                         </FormControl>
                         <FormControl>
                             <FormLabel>Points</FormLabel>
-                            <NumberInput value={points} min={0} onChange={onPointsChange}>
+                            <NumberInput value={points} min={0} max={100} onChange={onPointsChange}>
                                 <NumberInputField/>
                                 <NumberInputStepper>
                                     <NumberIncrementStepper/>
                                     <NumberDecrementStepper/>
                                 </NumberInputStepper>
                             </NumberInput>
-                            <FormHelperText>Be nice to your students, give more points</FormHelperText>
+                            <FormHelperText>Be nice to your students, give more points (max 100)</FormHelperText>
                         </FormControl>
                     </VStack>
                 </ModalBody>
