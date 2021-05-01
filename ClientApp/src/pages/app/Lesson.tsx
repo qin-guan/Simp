@@ -2,6 +2,8 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 
 import { useParams } from "react-router";
+import { Link } from "react-router-dom";
+
 import {
     Box,
     Spacer,
@@ -17,7 +19,12 @@ import {
     Stat,
     StatLabel,
     StatNumber,
-    VStack, HStack, Alert, AlertIcon, AlertTitle, AlertDescription
+    VStack,
+    HStack,
+    Alert,
+    AlertIcon,
+    AlertTitle,
+    AlertDescription
 } from "@chakra-ui/react";
 import { RepeatIcon } from "@chakra-ui/icons";
 import { fromUnixTime, format } from "date-fns";
@@ -279,7 +286,10 @@ const Lesson = (): React.ReactElement => {
                                         </Alert>
                                     )}
                                     {assignments.map((assignment, idx) => (
-                                        <AssignmentCard assignment={assignment} key={idx.toString()}/>
+                                        <Link key={idx.toString()}
+                                            to={`/app/classrooms/${classroomId}/lessons/${lessonId}/assignments/${assignment.Id}`}>
+                                            <AssignmentCard assignment={assignment}/>
+                                        </Link>
                                     ))}
                                 </Box>
                             </WrapItem>

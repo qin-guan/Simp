@@ -54,7 +54,7 @@ const CreateLessonModal = (props: CreateLessonModalProps): React.ReactElement =>
     const toast = useToast();
 
     const isCreateButtonDisabled = useMemo(() => {
-        return !!(lessonName || isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate)));
+        return (!lessonName || isNaN(Date.parse(startDate)) || isNaN(Date.parse(endDate)));
     }, [lessonName, startDate, endDate]);
 
     const createLesson = async () => {

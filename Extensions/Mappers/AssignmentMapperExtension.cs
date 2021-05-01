@@ -11,7 +11,7 @@ namespace Simp.Extensions.Mappers
         {
             return new()
             {
-                Id = assignment.ToString(),
+                Id = assignment.Id.ToString(),
                 Name = assignment.Name,
                 Description = assignment.Description,
                 DueDate = assignment.DueDate.ToEpochTime(),

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Simp.Data;
 using Simp.Models;
@@ -12,6 +13,11 @@ namespace Simp.Services
         public AssignmentService(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
+        }
+        
+        public async Task<Assignment> FindAsync(Guid guid)
+        {
+            return await _dbContext.Assignments.FindAsync(guid);
         }
 
         public async Task<IEnumerable<Assignment>> FindByLessonAsync(Lesson lesson)

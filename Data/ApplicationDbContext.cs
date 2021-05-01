@@ -36,6 +36,7 @@ namespace Simp.Data
         public DbSet<Venue> Venues { get; set; }
         public DbSet<Lesson> Lessons { get; set; }
         public DbSet<Assignment> Assignments { get; set; }
+        public DbSet<Submission> Submissions { get; set; }
         public DbSet<AttendanceVerification> AttendanceVerifications { get; set; }
     }
 }

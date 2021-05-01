@@ -26,7 +26,7 @@ namespace Simp.Authorization
             Classroom classroom
         )
         {
-            if (context.User.Identity == null) return;
+            if (context.User.Identity is null) return;
             
             var user = await _userManager.FindByIdAsync(context.User.FindFirstValue(ClaimTypes.NameIdentifier));
             if (user is null) return;

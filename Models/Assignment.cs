@@ -12,6 +12,7 @@ namespace Simp.Models
         public int Points { get; set; }
         public Lesson Lesson { get; set; }
         public ApplicationUser Creator { get; set; }
+        public List<Submission> Submissions { get; set; }
         public ICollection<ApplicationUser> CompletedUsers { get; set; }
     }
 }

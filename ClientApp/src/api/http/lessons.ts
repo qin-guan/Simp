@@ -3,6 +3,7 @@ import Lesson from "../../models/Lesson";
 import User from "../../models/User";
 import Venue from "../../models/Venue";
 import Assignment from "../../models/Assignment";
+import Submission from "../../models/Submission";
 
 export const get = async (classroomId: string): Promise<Lesson[]> => {
     return await apiClient.get(`Classrooms/${classroomId}/Lessons/`).json<Lesson[]>();
@@ -16,6 +17,10 @@ export const getVenue = async (classroomId: string, lessonId: string): Promise<V
 
 export const find = async (classroomId: string, lessonId: string): Promise<Lesson> => {
     return await apiClient.get(`Classrooms/${classroomId}/Lessons/${lessonId}`).json<Lesson>();
+};
+
+export const findAssignment = async (classroomId: string, lessonId: string, assignmentId: string): Promise<Assignment> => {
+    return await apiClient.get(`Classrooms/${classroomId}/Lessons/${lessonId}/Assignments/${assignmentId}`).json<Assignment>();
 };
 
 export const create = async (classroomId: string, lesson: Lesson): Promise<Lesson> => {
@@ -54,10 +59,15 @@ export const getAssignments = async (classroomId: string, lessonId: string): Pro
     return await apiClient.get(`Classrooms/${classroomId}/Lessons/${lessonId}/Assignments`).json<Assignment[]>();
 };
 
+export const getAssignmentSubmissions = async (classroomId: string, lessonId: string, assignmentId: string): Promise<Submission[]> => {
+    return await apiClient.get(`Classrooms/${classroomId}/Lessons/${lessonId}/Assignments/${assignmentId}/Submissions`).json<Submission[]>();
+};
+
 const lessons = {
     get,
     getVenue,
     find,
+    findAssignment,
     create,
     addVenue,
     createAttendance,
@@ -66,7 +76,8 @@ const lessons = {
     getAttendees,
     getAttendance,
     deleteAttendance,
-    getAssignments
+    getAssignments,
+    getAssignmentSubmissions
 };
 
 export default lessons;
